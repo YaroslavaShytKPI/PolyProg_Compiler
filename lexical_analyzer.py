@@ -23,7 +23,7 @@ Ferror = {100, 101, 102}  # обробка помилок
 
 tokenTable = {'main': 'keyword', 'int': 'keyword', 'double': 'keyword', \
               'bool': 'keyword', 'for': 'keyword', 'if': 'keyword', \
-              'else': 'keyword', 'print': 'keyword', 'readLine': 'keyword', \
+              'else': 'keyword', 'print': 'keyword', 'readline': 'keyword', \
               'do': 'keyword', 'while': 'keyword', 'true': 'boolval', \
               'false': 'boolval', '=': 'assign_op', '+': 'add_op', \
               '-': 'add_op', '*': 'mult_op', '/': 'mult_op', \
@@ -48,7 +48,7 @@ f.close()
 FSuccess = (True, 'Lexer')
 
 lenCode = len(sourceCode) - 1  # номер останнього символа у файлі з кодом програми
-numLine = 1  # лексичний аналіз починаємо з першого рядка
+numLine = 0  # лексичний аналіз починаємо з першого рядка
 numChar = -1  # з першого символа (в Python'і нумерація - з 0)
 char = ''  # ще не брали жодного символа
 lexeme = ''  # ще не починали розпізнавати лексеми
@@ -127,6 +127,7 @@ def processing():
 
         if token != 'keyword':
             index = indexIdConst(state, lexeme)
+
             print('{0:<3d} {1:<10s} {2:<10s} {3:<2d} '.format(numLine, lexeme, token, index))
             tableOfSymb[len(tableOfSymb) + 1] = (numLine, lexeme, token, index)
         else:

@@ -2,8 +2,8 @@ main(){
 		int x;
 		bool ind;
 		double num;
-        readLine(x);
-        readLine(num);
+        readline(x);
+        readline(num);
         for (int i = x; i > 0; i = i - 1){
 	        if(i == 1){
 	            print(true);
