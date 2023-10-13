@@ -13,7 +13,7 @@ stf = { (0, 'WhiteSpace'):0, \
         (0, 'EndOfLine'):14, \
         (0, '!'):15, (15, '='):16, \
                      (15, 'OtherChar'):102, \
-        (0, 'OtherChar'):100
+        (0, 'OtherChar'):100,
 }
 
 initState = 0 # q0 - стартовий стан
@@ -44,12 +44,12 @@ tableOfSymb={}  # Таблиця символів програми (таблиц
 
 state = initState # поточний стан
 
-f = open('test6.pol', 'r')
+f = open('program.pol', 'r')
 sourceCode=f.read()
 f.close()
 
 # FSuccess - ознака успішності розбору
-FSuccess = (True,'Lexer')
+FSuccess = (True, 'Lexer')
 
 lenCode = len(sourceCode)-1       # номер останнього символа у файлі з кодом програми
 numLine = 1                       # лексичний аналіз починаємо з першого рядка
@@ -104,6 +104,9 @@ def classOfChar(char):
 
 
 def nextState(state, classCh):
+  global numLine
+  if classCh == 'EndOfLine':
+    numLine += 1
   try:
     return stf[(state, classCh)]
   except KeyError:
