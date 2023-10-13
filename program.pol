@@ -1,0 +1,31 @@
+main(){
+		int x;
+		bool ind;
+		double num;
+        readLine(x);
+        readLine(num);
+        for (int i = x; i > 0; i = i - 1){
+	        if(i == 1){
+	            print(true);
+            }
+	        print(i);
+        }
+        if(num > 100.0){
+	        print(num);
+        } else {
+	        print(num * num);
+        }
+        do {
+	        res = num + x;
+	        res = num / x;
+	        if (res != 15){
+		        print(res);
+            }
+            if(res < 2){
+                print(true);
+                if(x <= 4){
+                res = 10^2;
+            }
+            x = x -1;
+        } while(x >= 0)
+}
