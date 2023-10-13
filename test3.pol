@@ -1,0 +1,11 @@
+main {
+  int a = 0;
+
+  do{
+    a = a + 2;
+  } while(a < 20)
+
+  if (a != 20) {
+    print(true);
+  }
+}

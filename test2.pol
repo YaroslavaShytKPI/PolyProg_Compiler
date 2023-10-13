@@ -1,0 +1,9 @@
+main {
+  double x1 = 2.5;
+
+  if (x1 < 5) {
+    print(x1);
+  } else {
+    print(x1 + 4);
+  }
+}

@@ -9,7 +9,7 @@ stf = { (0, 'WhiteSpace'):0, \
         (0, '='):10, (10, '='):11, \
                      (10, 'OtherChar'):12, \
         (0, '+'):8, (0, '-'):8, (0, '*'):8, (0, '/'):8, (0, '('):8, \
-        (0, ')'):8, (0, '}'):8, (0, '{'):8, (0, '^'):8, \
+        (0, ')'):8, (0, '}'):8, (0, '{'):8, (0, '^'):8, (0, ':'):8, (0, ';'):8,\
         (0, 'EndOfLine'):14, \
         (0, '!'):15, (15, '='):16, \
                      (15, 'OtherChar'):102, \
@@ -42,30 +42,29 @@ tableOfId={}   # Таблиця ідентифікаторів
 tableOfConst={} # Таблиць констант
 tableOfSymb={}  # Таблиця символів програми (таблиця розбору)
 
-
 state = initState # поточний стан
 
-f = open('test1.pol', 'r')
+f = open('test6.pol', 'r')
 sourceCode=f.read()
 f.close()
 
 # FSuccess - ознака успішності розбору
 FSuccess = (True,'Lexer')
 
-lenCode=len(sourceCode)-1       # номер останнього символа у файлі з кодом програми
-numLine=1                       # лексичний аналіз починаємо з першого рядка
-numChar=-1                      # з першого символа (в Python'і нумерація - з 0)
-char=''                         # ще не брали жодного символа
-lexeme=''                       # ще не починали розпізнавати лексеми
+lenCode = len(sourceCode)-1       # номер останнього символа у файлі з кодом програми
+numLine = 1                       # лексичний аналіз починаємо з першого рядка
+numChar = -1                      # з першого символа (в Python'і нумерація - з 0)
+char = ''                         # ще не брали жодного символа
+lexeme = ''                       # ще не починали розпізнавати лексеми
 
 
 def lex():
   global state, numLine, char, lexeme, numChar, FSuccess
   try:
-    while numChar<lenCode:
+    while numChar < lenCode:
       char = nextChar()
       classCh = classOfChar(char) 
-      state = nextState(state,classCh)
+      state = nextState(state, classCh)
       if (is_final(state)):
         processing()
       elif state == initState:
@@ -96,8 +95,8 @@ def classOfChar(char):
     result = 'WhiteSpace'
   elif char in '\n':
     result = 'EndOfLine'
-  elif char in ':=*+-/^(){}<>':
-    result = 'OtherChar'
+  elif char in ':=*+-/^(){}<>;!':
+    result = char
   else: result = 'символ не належить алфавіту'
 
   return result
@@ -127,7 +126,7 @@ def processing():
     numLine += 1
     state = initState
 
-  if state in (2, 4, 6):
+  if state in (2, 4, 6, 12):
     token = getToken(state, lexeme)
 
     if token != 'keyword':
@@ -138,17 +137,17 @@ def processing():
       print('{0:<3d} {1:<10s} {2:<10s} '.format(numLine, lexeme, token))
       tableOfSymb[len(tableOfSymb) + 1] = (numLine, lexeme, token, '')
 
-    lexeme=''
-    numChar=putCharBack(numChar)
-    state=initState
+    lexeme = ''
+    numChar = putCharBack(numChar)
+    state = initState
 
-  if state in (14, 8, 12, 11, 13, 16): 
+  if state in (14, 8, 11, 13, 16): 
     lexeme += char
     token = getToken(state,lexeme)
     print('{0:<3d} {1:<10s} {2:<10s} '.format(numLine, lexeme, token))
     tableOfSymb[len(tableOfSymb) + 1] = (numLine, lexeme, token, '')
-    lexeme=''
-    state=initState
+    lexeme = ''
+    state = initState
 
   if state in Ferror:
     fail()
@@ -169,15 +168,15 @@ def indexIdConst(state, lexeme):
     indx = tableOfId.get(lexeme)
 
     if indx is None:
-      indx=len(tableOfId)+1
-      tableOfId[lexeme]=indx
+      indx = len(tableOfId)+1
+      tableOfId[lexeme] = indx
 
   if state in (4, 6):
-    indx=tableOfConst.get(lexeme)
+    indx = tableOfConst.get(lexeme)
 
     if indx is None:
-      indx=len(tableOfConst)+1
-      tableOfConst[lexeme]=(tokStateTable[state],indx)
+      indx = len(tableOfConst)+1
+      tableOfConst[lexeme] = (tokStateTable[state],indx)
 
   return indx
 
@@ -190,7 +189,6 @@ def putCharBack(numChar):
 
 def fail():
   global state, numLine, char
-  print(numLine)
 
   if state == 100:
     print('Lexer: у рядку ',numLine,' неочікуваний символ '+char)
@@ -212,7 +210,7 @@ lex()
 
 
 # Таблиці: розбору, ідентифікаторів та констант
-print('-'*30)
+print('-' * 30)
 print('tableOfSymb:{0}'.format(tableOfSymb))
 print('tableOfId:{0}'.format(tableOfId))
 print('tableOfConst:{0}'.format(tableOfConst))
