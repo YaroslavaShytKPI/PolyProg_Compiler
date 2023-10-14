@@ -4,6 +4,7 @@ main() {
 	double num;
     readline(x);
     readline(num);
+    // data 1 2 3 *
     for (int i = x; i > 0; i = i - 1) {
 	    if(i == 2) {
 	      print(true);
@@ -17,7 +18,7 @@ main() {
     } else {
 	    print(num * num);
     }
-// data
+
     do {
 	    res = num + 15;
 	    res = num / x;
