@@ -121,7 +121,7 @@ def processing():
         numLine += 1
         state = initState
 
-    if state in (2, 4, 6, 9, 12, 20):
+    if state in (2, 4, 6, 9, 12, 19, 20):
         token = getToken(state, lexeme)
 
         if token != 'keyword':
@@ -138,7 +138,7 @@ def processing():
         numChar = putCharBack(numChar)
         state = initState
 
-    if state in (14, 8, 11, 13, 16, 19):
+    if state in (14, 8, 11, 13, 16):
         lexeme += char
         token = getToken(state, lexeme)
         print('{0:<3d} {1:<10s} {2:<10s} '.format(numLine, lexeme, token))
