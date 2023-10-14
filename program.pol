@@ -2,7 +2,6 @@ main() {
 	int x;
 	bool ind;
 	double num;
-  {
     readline(x);
     readline(num);
     for (int i = x; i > 0; i = i - 1) {
@@ -18,7 +17,7 @@ main() {
     } else {
 	    print(num * num);
     }
-
+// data
     do {
 	    res = num + 15;
 	    res = num / x;
@@ -31,11 +30,10 @@ main() {
         print(true);
       }
 
-      if(x <= 4){
+      if(x <= 3){
         res = 10^5;
       }
       x = x + 6;
       x = x - 6;
     } while(x >= 0)
-  }
 }

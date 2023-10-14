@@ -8,16 +8,18 @@ stf = {(0, 'WhiteSpace'): 0, \
        (7, 'OtherChar'): 9, \
        (0, '='): 10, (10, '='): 11, \
        (10, 'OtherChar'): 12, \
-       (0, '+'): 8, (0, '-'): 8, (0, '*'): 8, (0, '/'): 8, (0, '('): 8, \
-       (0, ')'): 8, (0, '}'): 8, (0, '{'): 8, (0, '^'): 8, (0, ':'): 8, (0, ';'): 8, \
+       (0, '+'): 13, (0, '-'): 13, (0, '*'): 13, (0, '('): 13, (0, ')'): 13, \
+       (0, '}'): 13, (0, '{'): 13, (0, '^'): 13, (0, ';'): 13, \
        (0, 'EndOfLine'): 14, \
        (0, '!'): 15, (15, '='): 16, \
        (15, 'OtherChar'): 102, \
+       (0, '/'): 17, (17, '/'): 18, (18, 'OtherChar'): 19, \
+       (17, 'OtherChar'): 20, \
        (0, 'OtherChar'): 100,
        }
 
 initState = 0  # q0 - стартовий стан
-F = {2, 4, 6, 8, 9, 11, 12, 13, 14, 16, 100, 101, 102}  # множина заключних станів
+F = {2, 4, 6, 8, 9, 11, 12, 13, 14, 16, 19, 20, 100, 101, 102}  # множина заключних станів
 Fstar = {2, 4, 6}  # зірочка
 Ferror = {100, 101, 102}  # обробка помилок
 
@@ -30,7 +32,7 @@ tokenTable = {'main': 'keyword', 'int': 'keyword', 'double': 'keyword', \
               '^': 'power_op', '<': 'rel_op', '<=': 'rel_op', '>': 'rel_op', \
               '>=': 'rel_op', '==': 'rel_op', '!=': 'rel_op', \
               '(': 'breacket_op', ')': 'breacket_op', '{': 'breacket_op', \
-              '}': 'breacket_op', '.': 'punct', ',': 'punct', ':': 'punct', \
+              '}': 'breacket_op', '.': 'punct', ',': 'punct', '//': 'comment', \
               ';': 'punct', '\t': 'ws', ' ': 'ws', '\n': 'eol'}
 tokStateTable = {2: 'id', 4: 'intnum', 6: 'doublenum'}
 
@@ -48,7 +50,7 @@ f.close()
 FSuccess = (True, 'Lexer')
 
 lenCode = len(sourceCode) - 1  # номер останнього символа у файлі з кодом програми
-numLine = 0  # лексичний аналіз починаємо з першого рядка
+numLine = 1  # лексичний аналіз починаємо з першого рядка
 numChar = -1  # з першого символа (в Python'і нумерація - з 0)
 char = ''  # ще не брали жодного символа
 lexeme = ''  # ще не починали розпізнавати лексеми
@@ -99,9 +101,6 @@ def classOfChar(char):
 
 
 def nextState(state, classCh):
-    global numLine
-    if classCh == 'EndOfLine':
-        numLine += 1
     try:
         return stf[(state, classCh)]
     except KeyError:
@@ -118,26 +117,28 @@ def is_final(state):
 def processing():
     global state, lexeme, char, numLine, numChar, tableOfSymb
 
-    if state == 9:
+    if state == 14:
         numLine += 1
         state = initState
 
-    if state in (2, 4, 6, 12):
+    if state in (2, 4, 6, 9, 12, 20):
         token = getToken(state, lexeme)
 
         if token != 'keyword':
             index = indexIdConst(state, lexeme)
             print(f"{numLine:<3d} {lexeme:<10s} {token:<10s} {index}")
+          #  print('{0:<3d} {1:<10s} {2:<10s} {3:<2d} '.format(numLine, lexeme, token, index))
             tableOfSymb[len(tableOfSymb) + 1] = (numLine, lexeme, token, index)
         else:
-            print(f"{numLine:<3d} {lexeme:<10s} {token:<10s} ")
+            print(f"{numLine:<3d} {lexeme:<10s} {token:<10s}")
+            #print('{0:<3d} {1:<10s} {2:<10s} '.format(numLine, lexeme, token))
             tableOfSymb[len(tableOfSymb) + 1] = (numLine, lexeme, token, '')
 
         lexeme = ''
         numChar = putCharBack(numChar)
         state = initState
 
-    if state in (14, 8, 11, 13, 16):
+    if state in (14, 8, 11, 13, 16, 19):
         lexeme += char
         token = getToken(state, lexeme)
         print('{0:<3d} {1:<10s} {2:<10s} '.format(numLine, lexeme, token))
@@ -155,7 +156,25 @@ def getToken(state, lexeme):
     except KeyError:
         return tokStateTable[state]
 
+"""
+def indexIdConst(state, lexeme):
+    indx = 0
+    if state == 2:
+        indx = tableOfId.get(lexeme)
 
+        if indx is None:
+            indx = len(tableOfId) + 1
+            tableOfId[lexeme] = indx
+
+    if state in (4, 6):
+        indx = tableOfConst.get(lexeme)
+        print(tableOfConst,lexeme)
+
+        if indx is None:
+            indx = len(tableOfConst) + 1
+            tableOfConst[lexeme] = (tokStateTable[state], indx)
+    return indx
+"""
 def indexIdConst(state, lexeme):
     indx = 0
     if state == 2:
@@ -174,7 +193,6 @@ def indexIdConst(state, lexeme):
             indx = len(tableOfConst) + 1
             tableOfConst[lexeme] = (tokStateTable[state], indx)
     return indx
-
 
 
 def putCharBack(numChar):
