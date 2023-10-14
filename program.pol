@@ -20,7 +20,7 @@ main() {
     }
 
     do {
-	    res = num + x;
+	    res = num + 15;
 	    res = num / x;
 
 	    if (res != 15){
@@ -34,7 +34,7 @@ main() {
       if(x <= 4){
         res = 10^5;
       }
-
+      x = x + 6;
       x = x - 6;
     } while(x >= 0)
   }
