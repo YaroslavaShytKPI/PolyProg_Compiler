@@ -1,4 +1,4 @@
-main
+main() {
   int x = 1 + 4;
   print(x);
 }

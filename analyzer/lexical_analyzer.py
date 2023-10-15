@@ -1,5 +1,5 @@
 from tocken_table import *
-from PolyProg_Compiler.analyzer.finite_state_machine import *
+from finite_state_machine import *
 
 table_of_id = {}     # таблиця ідентифікаторів
 table_of_const = {}  # таблиць констант
@@ -8,7 +8,7 @@ table_of_sym = {}    # таблиця символів програми (таб�
 state = init_state   # поточний стан
 
 
-f = open('../test_files/program.pol', 'r')  # зчитування файлу програми мовою PolyProg
+f = open('test_files/program.pol', 'r')  # зчитування файлу програми мовою PolyProg
 source_code = f.read()
 f.close()
 
@@ -163,11 +163,11 @@ def fail():
     global state, num_line, char
 
     if state == 100:
-        print('Lexer: у рядку ', num_line, ' неочікуваний символ ' + char)
+        print('Lexer: у рядку ', num_line, ' неіснуючий символ ' + char)
         exit(100)
 
     if state == 101:
-        print('Lexer: у рядку ', num_line, ' очiкувався символ =, а не ' + char)
+        print('Lexer: у рядку ', num_line, ' неочікуваний символ ' + char)
         exit(101)
 
     if state == 102:

@@ -1,9 +1,14 @@
-main {
+main() {
   double x1 = 2.5;
+  int a;
 
   if (x1 < 5) {
     print(x1);
   } else {
     print(x1 + 4);
+  }
+
+  for (let i = 0; i < 10; i = i - 8) {
+    readline(a);
   }
 }
