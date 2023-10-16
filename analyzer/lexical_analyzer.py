@@ -90,7 +90,16 @@ def is_final(state):
 def processing():
     global state, lexeme, char, num_line, num_char, table_of_sym
 
-    if state in (14, 19):
+    if state == 14:
+        num_line += 1
+        state = init_state
+    
+    if state == 19:
+        token = get_token(state, lexeme)
+
+        print('-' * 30)
+        print(f"{num_line:<3d} {lexeme:<10s} {token:<10s}")
+
         num_line += 1
         lexeme = ''
         state = init_state

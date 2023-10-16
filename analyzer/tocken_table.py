@@ -34,4 +34,4 @@ token_table = {
     '\n': 'eol'
 }
 
-tok_state_table = {2: 'id', 4: 'intnum', 6: 'doublenum'}
+tok_state_table = {2: 'id', 4: 'intnum', 6: 'doublenum', 19: 'comment'}
