@@ -1,5 +1,5 @@
 from tocken_table import *
-from finite_state_machine import *
+from state_transition_function import *
 
 table_of_id = {}     # таблиця ідентифікаторів
 table_of_const = {}  # таблиць констант
@@ -90,11 +90,12 @@ def is_final(state):
 def processing():
     global state, lexeme, char, num_line, num_char, table_of_sym
 
-    if state == 14:
+    if state in (14, 19):
         num_line += 1
+        lexeme = ''
         state = init_state
 
-    if state in (2, 4, 6, 9, 12, 19, 20):
+    if state in (2, 4, 6, 9, 12, 20):
         token = get_token(state, lexeme)
 
         if token != 'keyword':
@@ -167,11 +168,11 @@ def fail():
         exit(100)
 
     if state == 101:
-        print('Lexer: у рядку ', num_line, ' неочікуваний символ ' + char)
+        print('Lexer: у рядку ', num_line, ' не очiкувався символ класу \'Letter\'')
         exit(101)
 
     if state == 102:
-        print('Lexer: у рядку ', num_line, ' не очiкувався символ класу \'Letter\'')
+        print('Lexer: у рядку ', num_line, ' неочікуваний символ ' + char)
         exit(102)
 
 

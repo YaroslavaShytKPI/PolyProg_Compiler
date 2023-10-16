@@ -1,5 +1,5 @@
 main() {
-	int x;
+	int x; 
 	bool ind;
 	double num;
     readline(x);
@@ -29,12 +29,12 @@ main() {
 
       if(res < 3){
         print(true);
-      }
+      } 
 
-      if(x <= 3){
-        res = 10^5;
+      if(x <= 3){ 
+        res = 10^5; 
       }
       x = x + 6;
       x = x - 6;
-    } while(x >= 0)
+    } while(x >= 0) //comment1
 }
