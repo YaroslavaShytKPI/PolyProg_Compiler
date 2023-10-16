@@ -26,10 +26,12 @@ token_table = {
     '{': 'breacket_op', '}': 'breacket_op',
     # пунктуаційні знаки
     '.': 'punct', ',': 'punct', ';': 'punct',
+    # коментарі
+    '//': 'comment',
     # пробіл
     '\t': 'ws', ' ': 'ws',
     # перехід на новий рядок
     '\n': 'eol'
 }
 
-tok_state_table = {2: 'id', 4: 'intnum', 6: 'doublenum', 19: 'comment'}
+tok_state_table = {2: 'id', 4: 'intnum', 6: 'doublenum'}

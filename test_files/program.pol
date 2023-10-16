@@ -36,5 +36,5 @@ main() {
       }
       x = x + 6;
       x = x - 6;
-    } while(x >= 0) //
+    } while(x >= 0) //a
 }
