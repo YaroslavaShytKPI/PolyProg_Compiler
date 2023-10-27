@@ -13,6 +13,7 @@ class Parser:
     def parse_program(self):
         try:
             self.parse_token("main", "keyword", "")
+            self.parse_statement_list()
             print("Parser: Синтаксичний аналiз завершився успiшно")
             return True
         except SystemExit as e:
@@ -58,10 +59,81 @@ class Parser:
     def parse_statement(self):
         print("\t\t parse statement (): ")
         num_line, lex, tok = self.get_sym()
-
-        if tok == "id": #????????? ident
+        print(f"TOKEN {tok}")
+        if tok == "id":  # ????????? ident
             self.parse_assign()
             return True
+        else:
+            self.fail_parse("Невідповідність інструкцій", (num_line, lex, tok, 'ident або if'))
+            return False
+
+    # Assign = Ident ‘=’ Expression ‘;’
+    def parse_assign(self):
+        print("\t" * 4 + "parse assign()")
+        num_line, lex, tok = self.get_sym()
+        self.num_row += 1
+        print("\t" * 5 + "в рядку {0} - {1}".format(num_line, (lex, tok)))
+        if self.parse_token("=", "assign_op", "\t\t\t\t\t"):
+            self.parse_ind_expression()
+            return True
+        else:
+            return False
+
+    # IndExpr = Ident ‘=’ MathExpression1 ‘;’ BoolExpression ‘;’ Ident ‘=’ MathExpression2
+    def parse_ind_expression(self):
+        print("\t" * 5 + "parse assign()")
+        num_line, lex, toc = self.get_sym()
+        self.parse_term()
+        F = True
+        while F:
+            num_line, lex, toc = self.get_sym()
+            if tok in "add_op":
+                self.num_row += 1
+                print("\t" * 6 + "в рядку {0} - {1}".format(numLine, (lex, tok)))
+                self.parse_term()
+            else:
+                F = False
+        return True
+
+    def parse_term(self):
+        print("\t" *6 + "parseTerm():")
+        self.parse_factor()
+        F = True
+        while F:
+            num_line, lex, toc = self.get_sym()
+            if tok in "mult_op":
+                self.num_row += 1
+                print("\t" * 6 + "в рядку {0} - {1}".format(numLine, (lex, tok)))
+                self.parse_factor()
+            else:
+                F = False
+        return True
+
+    def parse_factor(self):
+        print("\t" * 7 + "parseFactor():")
+        num_line, lex, tok = getSymb()
+        print("\t"*7 + "parseFactor(): рядок: {0}\t(lex, tok): {1}".format(numLine, (lex, tok)))
+        if tok in ("int", "double", "id"):
+            self.num_row += 1
+            print("\t"*7 +"в рядку {0} - {1}".format(numLine, (lex, tok)))
+        elif lex =="(":
+            self.num_row += 1
+            self.parse_ind_expression()
+            self.parse_token(")", "breacket_op", "\t"*7)
+            print("\t"*7 + "в рядку {0} - {1}".format(numLine, (lex, tok)))
+        else:
+            self.fail_parse("невiдповiднiсть у Expression.Factor", (numLine, lex, tok,"rel_op, int, double, id або \’(\’ Expression \’)\’"))
+        return True
+
+
+lex()
+print('-' * 30)
+print('tableOfSymb:{0}'.format(table_of_sym))
+print('-' * 30)
+parser = Parser().parse_program()
+
+
+"""
         elif (lex, tok) == ("if", "keyword"):
             self.parse_if()
             return True
@@ -77,28 +149,4 @@ class Parser:
         elif (lex, tok) == ("do", "keyword"):
             self.parse_do()
             return True
-        else:
-            self.fail_parse("Невідповідність інструкцій", (num_line, lex, tok, 'ident або if'))
-            return False
-
-    def parse_assign(self):
-        print("\t"*4 + "parse assign()")
-        num_line, lex, tok = self.get_sym()
-        self.num_row += 1
-        print("\t"*5 +"в рядку {0} - {1}".format(numLine, (lex, tok)))
-        # якщо ця поточна лексема - ’:=’
-        if self.parse_token("=", "assign_op", "\t\t\t\t\t"):
-            self.parse_expression()
-            return True
-        else:
-            return False
-
-
-
-
-
-lex()
-print('-'*30)
-print('tableOfSymb:{0}'.format(table_of_sym))
-print('-'*30)
-parser = Parser().parse_program()
+"""

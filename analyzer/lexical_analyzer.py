@@ -177,10 +177,10 @@ def fail():
 
 
 # запуск лексичного аналізатора
-lex()
+#lex()
 
 # Таблиці: розбору, ідентифікаторів та констант
-print('-' * 50)
-print('Table Of Symbols: {0}'.format(table_of_sym))
-print('Table Of IDs    : {0}'.format(table_of_id))
-print('Table Of Const  : {0}'.format(table_of_const))
+#print('-' * 50)
+#print('Table Of Symbols: {0}'.format(table_of_sym))
+#print('Table Of IDs    : {0}'.format(table_of_id))
+#print('Table Of Const  : {0}'.format(table_of_const))
