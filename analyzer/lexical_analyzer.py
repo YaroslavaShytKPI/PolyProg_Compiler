@@ -1,5 +1,5 @@
-from tocken_table import *
-from state_transition_function import *
+from PolyProg_Compiler.analyzer.tocken_table import *
+from PolyProg_Compiler.analyzer.state_transition_function import *
 
 table_of_id = {}     # таблиця ідентифікаторів
 table_of_const = {}  # таблиць констант
@@ -8,7 +8,7 @@ table_of_sym = {}    # таблиця символів програми (таб�
 state = init_state   # поточний стан
 
 
-f = open('test_files/program.pol', 'r')  # зчитування файлу програми мовою PolyProg
+f = open('../test_files/test.pol', 'r')  # зчитування файлу програми мовою PolyProg
 source_code = f.read()
 f.close()
 
