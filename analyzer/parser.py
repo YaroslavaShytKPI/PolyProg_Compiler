@@ -71,7 +71,6 @@ class Parser:
     # StatementList = Statement {; Statement}
     def parse_statement_list(self):
         print("\t parse statement list")
-
         while self.parse_statement():
             self.parse_token(";", "punct", "\t")
         
@@ -81,16 +80,68 @@ class Parser:
     def parse_statement(self):
         print("\t\t parse statement (): ")
         num_line, lex, tok = self.get_sym()
-        # print(f"TOKEN {tok}")
+        #print(f"DATA {self.get_sym()}")
 
         if tok == "id":
             self.parse_assign()
             return True
+
+        elif (lex, tok) == ("print", "keyword"):
+            self.parse_print()
+            return True
+
+        elif (lex, tok) == ("readline", "keyword"):
+            self.parse_readline()
+            return True
+
         elif (lex, tok) == ('}', 'breacket_op'):
             return False
         else:
             self.fail_parse("Невідповідність інструкцій", (num_line, lex, tok, 'id або if'))
 
+            return False
+
+    # ID - done, CONST, EXPRESSION??????????, не виводить цифри
+    def parse_print(self):
+        print("\t" * 4 + "parse_print():")
+        _, lex, tok = self.get_sym()
+
+        if lex == "print" and tok == "keyword":
+            self.num_row += 1
+            self.parse_token("(", "breacket_op", "\t")
+            self.parse_id_list()
+            self.parse_token(")", "breacket_op", "\t")
+            return True
+        else:
+            return False
+
+    def parse_id_list(self):
+        print("\t" * 5 + "parse_ident_list():")
+        while self.parse_id():
+            self.parse_token(",", "punct", "\t")
+        return True
+
+    def parse_id(self):
+        print("\t" * 6 + "parse_id():")
+        while True:
+            num_line, lex, tok = self.get_sym()
+            if tok in "id":
+                self.num_row += 1
+                print('\t' * 7 + 'в рядку {0} - {1}'.format(num_line, (lex, tok)))
+            else:
+                break
+        return False
+
+    def parse_readline(self):
+        print("\t" * 4 + "parse_readline():")
+        _, lex, tok = self.get_sym()
+        if lex == "readline" and tok == "keyword":
+            self.num_row += 1
+            self.parse_token("(", "breacket_op", "\t")
+            self.parse_id_list()
+            self.parse_token(")", "breacket_op", "\t")
+            return True
+        else:
             return False
 
     # Assign = Ident ‘=’ Expression ‘;’

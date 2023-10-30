@@ -8,7 +8,7 @@ table_of_sym = {}    # таблиця символів програми (таб�
 state = init_state   # поточний стан
 
 
-f = open('test_files/test.pol', 'r')  # зчитування файлу програми мовою PolyProg   f = open('../test_files/test.pol', 'r')
+f = open('../test_files/test.pol', 'r')  # зчитування файлу програми мовою PolyProg   f = open('../test_files/test.pol', 'r')
 source_code = f.read()
 f.close()
 
@@ -63,7 +63,7 @@ def class_of_char(char):
         result = 'WhiteSpace'
     elif char in '\n':
         result = 'EndOfLine'
-    elif char in ':=*+-/^(){}<>;!':
+    elif char in ':=*+-/^(){}<>;!,':
         result = char
     else:
         result = 'символ не належить алфавіту'
