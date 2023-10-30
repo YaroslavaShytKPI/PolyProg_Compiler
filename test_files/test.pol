@@ -1,5 +1,3 @@
 main {
-    x = a + 3;
-    print(3);
-    readline(b,j);
+    readline(a, b);
 }
