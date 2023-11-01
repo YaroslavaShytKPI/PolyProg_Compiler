@@ -1,3 +1,5 @@
 main {
-   readline(a, b);
+  int a, b;
+
+  readline(a, b);
 }
