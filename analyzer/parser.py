@@ -272,6 +272,9 @@ class Parser:
         if tok in ('rel_op'):
             self.num_row += 1
             print('\t' * 5 + 'в рядку {0} - {1}'.format(numLine, (lex, tok)))
+        elif tok in ("boolval"):
+            self.num_row += 1
+            print('\t' * 5 + 'в рядку {0} - {1}'.format(numLine, (lex, tok)))
         else:
             self.fail_parse("Mismatch in BoolExpr", (numLine, lex, tok, 'relop'))
         
@@ -279,7 +282,6 @@ class Parser:
 
         return True
 
-    # ID - done, CONST, EXPRESSION??????????, не виводить цифри
     def parse_print(self):
         print("\t" * 4 + "parse_print():")
         _, lex, tok = self.get_sym()
@@ -420,6 +422,10 @@ class Parser:
         elif lex == "^" and tok == "power_op":
             self.num_row += 1
             self.parse_power()
+
+        elif lex == "true" or lex == "false":
+            self.num_row += 1
+            return True
 
         else:
             self.fail_parse("Невiдповiднiсть у Expression.Factor", (num_line, lex, tok,"rel_op, int, double, id або \’(\’ Expression \’)\’"))
