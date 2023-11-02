@@ -1,4 +1,4 @@
-main{
-    print(true);
-    readline(false);
+main {
+  if (a > 0) {
+  }
 }
