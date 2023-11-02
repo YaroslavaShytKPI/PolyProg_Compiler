@@ -1,5 +1,7 @@
 main {
   int a, b;
-
-  readline(a, b);
+  print(a);
+  for (i = 0; i < 0; i= i + k){
+    readline(a,b);
+  }
 }
