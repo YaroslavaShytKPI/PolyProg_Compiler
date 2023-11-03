@@ -4,19 +4,21 @@ class Parser:
     num_row = 1
     column = 1
 
+
     def __new__(cls):
         if not hasattr(cls, 'instance'):
             cls.instance = super(Parser, cls).__new__(cls)
         
         return cls.instance
 
+
     # Program =  main ‘()‘ ‘{’ DeclarList DoSection ‘}’
     def parse_main(self):
         try:
-            self.parse_token("main", "keyword", "")
-            self.parse_token("{", "breacket_op", "")
+            self.parse_token("main", "keyword")
+            self.parse_token("{", "breacket_op")
             self.parse_statement_list()
-            self.parse_token("}", "breacket_op", "")
+            self.parse_token("}", "breacket_op")
             print("Parser: Синтаксичний аналiз завершився успiшно")
 
             return True
@@ -24,7 +26,8 @@ class Parser:
         except SystemExit as e:
             print(f"Parses: Аварійне завершення програми з кодом {0}".format(e))
 
-    def parse_token(self, lexeme, token, ident):
+
+    def parse_token(self, lexeme, token):
         if self.num_row > len(table_of_sym):
             self.fail_parse("Неочікуваний кінець програми", (lexeme, token, self.num_row))
 
@@ -32,11 +35,12 @@ class Parser:
         self.num_row += 1
 
         if (lex, tok) == (lexeme, token):
-            print(ident + "parseToken: В рядку {0} токен {1}".format(num_line, (lexeme, token)))
+            print(" " * self.column + "parseToken: В рядку {0} токен {1}".format(num_line, (lexeme, token)))
             return True
         else:
             self.fail_parse("Невідповідність токенів", (num_line, lex, tok, lexeme, token))
             return False
+
 
     def get_sym(self):
         if self.num_row > len(table_of_sym):
@@ -45,6 +49,7 @@ class Parser:
         num_line, lexeme, token, _ = table_of_sym[self.num_row]
 
         return num_line, lexeme, token
+
 
     def fail_parse(self, str, tuple):
         if str == "Неочікуваний кінець програми":
@@ -58,52 +63,59 @@ class Parser:
             print("Parser ERROR: \n\t Неочікуваний кінець програми - в таблиці символів (розбору) немає запису з номером {0}. \n\t Останній запис - {1}".format(
                   self.num_row, table_of_sym[self.num_row-1]))
             exit(1002)
+
         elif str == "Невідповідність токенів":
             (num_line, lexeme, token, lex, tok) = tuple
             print("Parser ERROR: \n\t В рядку {0} неочікуваний елемент ({1}, {2}). \n\t Очікувався - ({3}, {4}).".format(
                   num_line, lexeme, token, lex, tok))
             exit(1)
-        elif str == "Невідповідність інструкцій" or str == "Невiдповiднiсть у Expression.Factor":
+
+        elif str == "Невідповідність інструкцій":
             (num_line, lex, tok, expected) = tuple
             print("Parser ERROR: \n\t В рядку {0} неочікуваний елемент ({1}, {2}). \n\t Очікувався - {3}.".format(
                 num_line, lex, tok, expected))
             exit(2)
-        elif str == "Mismatch in BoolExpr" or str == "Невiдповiднiсть у Power":
+
+        elif str == "Невiдповiднiсть у Expression.Factor":
             (num_line, lex, tok, expected) = tuple
             print("Parser ERROR: \n\t В рядку {0} неочікуваний елемент ({1}, {2}). \n\t Очікувався - {3}.".format(
                 num_line, lex, tok, expected))
-        # elif str == "Тіло оператору не має бути порожнім":
-        #     (num_line, lex, tok) = tuple
-        #     print("Parser ERROR: \n\t В рядку {0} неочікуваний елемент ({1}, {2}). \n\tТіло оператору не має бути порожнім.".format(
-        #         num_line, lex, tok))
+            exit(3)
 
-    # StatementList = Statement {; Statement}
+        elif str == "Невідповідність в BoolExpr" or str == "Невiдповiднiсть у Power":
+            (num_line, lex, tok, expected) = tuple
+            print("Parser ERROR: \n\t В рядку {0} неочікуваний елемент ({1}, {2}). \n\t Очікувався - {3}.".format(
+                num_line, lex, tok, expected))
+            exit(4)
+
+    # StatementList = Statement {';' Statement}
     def parse_statement_list(self):
-        print("\t" * self.column + "parse_statement_list():")
+        print(" " * self.column + "parse_statement_list():")
         while self.parse_statement():
             pass
         
         return True
 
+
     # Statement = Assign | Inp | Out | ForStatement |DoWhileStatement| IfStatement
     def parse_statement(self):
         self.column = 2
-        print("\t" * self.column + "parse_statement():")
+        print(" " * self.column + "parse_statement():")
         num_line, lex, tok = self.get_sym()
 
         if tok == "id":
             self.parse_assign()
-            self.parse_token(";", "punct", "\t")
+            self.parse_token(";", "punct")
             return True
 
         elif (lex, tok) == ("print", "keyword"):
             self.parse_print()
-            self.parse_token(";", "punct", "\t")
+            self.parse_token(";", "punct")
             return True
 
         elif (lex, tok) == ("readline", "keyword"):
             self.parse_readline()
-            self.parse_token(";", "punct", "\t")
+            self.parse_token(";", "punct")
             return True
         
         elif (lex, tok) == ("if", "keyword"):
@@ -140,28 +152,31 @@ class Parser:
             self.fail_parse("Невідповідність інструкцій", (num_line, lex, tok, "keyword"))
 
             return False
-        
+
+
     def parse_declaration(self):
         self.column += 1
-        print("\t" * self.column + "parse_declaration():")
-        _, lex, tok = self.get_sym()
+        print(" " * self.column + "parse_declaration():")
+        num_line, lex, tok = self.get_sym()
 
         if tok == "keyword" and lex in ("int", "double", "bool"):
-            print('\t' * self.column + 'в рядку {0} - {1}'.format(lex, tok))
+            print(" " * self.column + 'в рядку {0} - {1}'.format(lex, tok))
             self.num_row += 1
 
             if not self.parse_id_declaration_list():
-                self.fail_parse("Невідповідність токенів", (self.num_row, lex, tok, 'id', "ident"))
+                num_line, lex, tok = self.get_sym()
+                self.fail_parse("Невідповідність інструкцій", (num_line, lex, tok, 'id'))
             
-            self.parse_token(";", "punct", "\t")
+            self.parse_token(";", "punct")
 
             return True
         else:
             return False
-        
+
+
     def parse_id_declaration_list(self):
         self.column += 1
-        print("\t" * self.column + "parse_id_declaration_list():")
+        print(" " * self.column + "parse_id_declaration_list():")
 
         if not self.parse_id():
             return False
@@ -170,12 +185,12 @@ class Parser:
             num_line, lex, tok = self.get_sym()
 
             if lex == ",":
-                print('\t' * self.column + 'в рядку {0} - {1}'.format(num_line, (lex, tok)))
-                self.parse_token(",", "punct", "\t")
+                print(" " * self.column + 'в рядку {0} - {1}'.format(num_line, (lex, tok)))
+                self.parse_token(",", "punct")
                 num_line, lex, tok = self.get_sym()
 
                 if not self.parse_id():
-                    self.fail_parse("Невідповідність токенів", (self.num_row, lex, tok, 'id', 'ident'))
+                    self.fail_parse("Невідповідність інструкцій", (self.num_row, lex, tok, 'id'))
             elif lex == ";":
                 break
             else:
@@ -184,96 +199,97 @@ class Parser:
             
         return True
 
+
+    # ForStatement = for '(' Assign';' BoolExp';' Assign ')' '{' StatementList '}'
     def parse_for(self):
         self.column += 1
-        print("\t" * self.column + "parse_for():")
+        print(" " * self.column + "parse_for():")
         _, lex, tok = self.get_sym()
         if lex == "for" and tok == "keyword":
             self.num_row += 1
-            self.parse_token("(", "breacket_op", "\t")
+            self.parse_token("(", "breacket_op")
             self.parse_assign()
-            self.parse_token(";", "punct", "\t")
+            self.parse_token(";", "punct")
             self.parse_bool_expr()
-            self.parse_token(";", "punct", "\t")
+            self.parse_token(";", "punct")
             self.parse_assign()
-            self.parse_token(")", "breacket_op", "\t")
-            self.parse_token("{", "breacket_op", "\t")
+            self.parse_token(")", "breacket_op")
+            self.parse_token("{", "breacket_op")
             self.parse_statement_list()
-            self.parse_token("}", "breacket_op", "\t")
+            self.parse_token("}", "breacket_op")
             return True
         else:
             return False
 
+
+    # DoWhileStatement = do '{' StatementList '}' while '(' BoolExp ')'
     def parse_do_while(self):
         self.column += 1
-        print("\t" * self.column+ "parse_do_while():")
+        print(" " * self.column+ "parse_do_while():")
         _, lex, tok = self.get_sym()
 
         if lex == "do" and tok == "keyword":
             self.num_row += 1
-            self.parse_token("{", "breacket_op", "\t")
+            self.parse_token("{", "breacket_op")
             self.parse_statement_list()
-            self.parse_token("}", "breacket_op", "\t")
-            self.parse_token("while", "keyword", "\t")
-            self.parse_token("(", "breacket_op", '\t')
+            self.parse_token("}", "breacket_op")
+            self.parse_token("while", "keyword")
+            self.parse_token("(", "breacket_op")
             self.parse_bool_expr()
-            self.parse_token(")", "breacket_op", "\t")
+            self.parse_token(")", "breacket_op")
 
             return True
         else: 
             return False
-        
+
+
+    # WhileStatement = while '(' BoolExp ')' '{' StatementList '}' 
     def parse_while(self):
         self.column += 1
-        print("\t" * self.column + "parse_while():")
+        print(" " * self.column + "parse_while():")
         _, lex, tok = self.get_sym()
 
         if lex == "while" and tok == "keyword":
             self.num_row += 1
-            self.parse_token("(", "breacket_op", '\t')
+            self.parse_token("(", "breacket_op")
             self.parse_bool_expr()
-            self.parse_token(")", "breacket_op", "\t")
-            self.parse_token("{", "breacket_op", "\t")
+            self.parse_token(")", "breacket_op")
+            self.parse_token("{", "breacket_op")
             self.parse_statement_list()
-            self.parse_token("}", "breacket_op", "\t")
+            self.parse_token("}", "breacket_op")
 
             return True
         else: 
             return False
-        
+
+
+    # IfStatement = if '(' BoolExp ')' '{' StatementList '}'
     def parse_if(self):
         self.column += 1
-        print("\t" * self.column + "parse_if():")
+        print(" " * self.column + "parse_if():")
         num_line, lex, tok = self.get_sym()
 
         if lex == "if" and tok == "keyword":
             self.num_row += 1
-            self.parse_token("(", "breacket_op", '\t')
+            self.parse_token("(", "breacket_op")
             self.parse_bool_expr()
-            self.parse_token(")", "breacket_op", "\t")
-            self.parse_token("{", "breacket_op", "\t")
-            self.parse_statement_list()
-            
-            # _, next_lex, next_tok = self.get_sym()
-
-            # if next_lex == "}" and next_tok == "breacket_op":
-            #     self.fail_parse("Тіло оператору не має бути порожнім", (num_line, lex, tok))
-            # else:
-            #     self.parse_statement_list()
-            
-            self.parse_token("}", "breacket_op", "\t")
+            self.parse_token(")", "breacket_op")
+            self.parse_token("{", "breacket_op")
+            self.parse_statement_list()            
+            self.parse_token("}", "breacket_op")
 
             _, lex, tok = self.get_sym()
 
             if lex == "else" and tok == "keyword":
-                self.parse_token("else", "keyword", "\t")
-                self.parse_token("{", "breacket_op", "\t")
+                self.parse_token("else", "keyword")
+                self.parse_token("{", "breacket_op")
                 self.parse_statement_list()
-                self.parse_token("}", "breacket_op", "\t")
+                self.parse_token("}", "breacket_op")
 
             return True
         else: 
             return False
+
 
     def parse_bool_expr(self):
         self.parse_expression()
@@ -281,38 +297,39 @@ class Parser:
 
         if tok in ('rel_op'):
             self.num_row += 1
-            print('\t' * self.column + 'в рядку {0} - {1}'.format(num_line, (lex, tok)))
+            print(" " * self.column + 'в рядку {0} - {1}'.format(num_line, (lex, tok)))
         elif tok in ("boolval"):
             self.num_row += 1
-            print('\t' * self.column + 'в рядку {0} - {1}'.format(num_line, (lex, tok)))
+            print(" " * self.column + 'в рядку {0} - {1}'.format(num_line, (lex, tok)))
         else:
-            self.fail_parse("Mismatch in BoolExpr", (num_line, lex, tok, 'rel_op'))
+            self.fail_parse("Невідповідність в BoolExpr", (num_line, lex, tok, 'rel_op'))
         
         self.parse_expression()
 
         return True
 
+
+    # Output = print '(' id ')'
     def parse_print(self):
         self.column += 1
-        print("\t" * self.column + "parse_print():")
+        print(" " * self.column + "parse_print():")
         _, lex, tok = self.get_sym()
 
         if lex == "print" and tok == "keyword":
             self.num_row += 1
-            self.parse_token("(", "breacket_op", "\t")
+            self.parse_token("(", "breacket_op")
             self.parse_expression()
        #     if not self.parse_id():
        #         self.fail_parse("Невідповідність токенів", (self.num_row, lex, tok, 'id'))
-            self.parse_token(")", "breacket_op", "\t")
+            self.parse_token(")", "breacket_op")
             return True
         else:
             return False
 
 
-
     def parse_id_list(self):
         self.column += 1
-        print("\t" * self.column + "parse_id_list():")
+        print(" " * self.column + "parse_id_list():")
 
         if not self.parse_id():
             return False
@@ -323,15 +340,15 @@ class Parser:
          #   print(num_line, lex, tok)
          #   self.num_row += 1
             if lex == ",":
-                print('\t' * self.column + 'в рядку {0} - {1}'.format(num_line, (lex, tok)))
-                self.parse_token(",", "punct", "\t")
+                print(" " * self.column + 'в рядку {0} - {1}'.format(num_line, (lex, tok)))
+                self.parse_token(",", "punct")
                 num_line, lex, tok = self.get_sym()
                 if lex == ")":
-                    self.fail_parse("Невідповідність токенів", (num_line, lex, tok, 'id', 'ident'))
+                    self.fail_parse("Невідповідність інструкцій", (num_line, lex, tok, 'id'))
                 #self.num_row += 1
-                #self.parse_token(",", "punct", "\t")
+                #self.parse_token(",", "punct")
                 if not self.parse_id():
-                    self.fail_parse("Невідповідність токенів", (num_line, lex, tok, 'id', 'ident'))
+                    self.fail_parse("Невідповідність інструкцій", (num_line, lex, tok, 'id'))
               #  self.parse_id()
             elif lex == ")":
                 break
@@ -342,44 +359,48 @@ class Parser:
               #  break
         return True
 
+
     def parse_id(self):
         self.column += 1
-        print("\t" * self.column + "parse_id():")
+        print(" " * self.column + "parse_id():")
         num_line, lex, tok = self.get_sym()
 
         if tok in "id":
             self.num_row += 1
-            print('\t' * self.column + 'в рядку {0} - {1}'.format(num_line, (lex, tok)))
+            print(" " * self.column + 'в рядку {0} - {1}'.format(num_line, (lex, tok)))
             return True
         else:
             return False
 
+
+    # Input = readline '(' IdList ')'
     def parse_readline(self):
         self.column += 1
-        print("\t" * self.column + "parse_readline():")
+        print(" " * self.column + "parse_readline():")
         num_line, lex, tok = self.get_sym()
         if lex == "readline" and tok == "keyword":
-            print('\t' * self.column + 'в рядку {0} - {1}'.format(lex, tok))
+            print(" " * self.column + 'в рядку {0} - {1}'.format(lex, tok))
             self.num_row += 1
-            self.parse_token("(", "breacket_op", "\t")
+            self.parse_token("(", "breacket_op")
             # self.parse_id_list()
             if not self.parse_id_list():
                 _, lex, tok = self.get_sym()
-                self.fail_parse("Невідповідність токенів", (num_line, lex, tok, 'id', 'ident'))
-            self.parse_token(")", "breacket_op", "\t")
+                self.fail_parse("Невiдповiднiсть інструкцій", (num_line, lex, tok, 'id'))
+            self.parse_token(")", "breacket_op")
             return True
         else:
             return False
+
 
     # Assign = Ident ‘=’ Expression ‘;’
     def parse_assign(self):
         self.column += 1
-        print("\t" * self.column + "parse_assign():")
+        print(" " * self.column + "parse_assign():")
         num_line, lex, tok = self.get_sym()
         self.num_row += 1
-        print("\t" * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
+        print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
 
-        if self.parse_token("=", "assign_op", "\t\t\t\t\t"):
+        if self.parse_token("=", "assign_op"):
            # self.num_row += 1
             self.parse_expression()
 
@@ -387,9 +408,10 @@ class Parser:
         else:
             return False
 
+
     def parse_expression(self):
         self.column += 1
-        print("\t" * self.column + "parse_expression():")
+        print(" " * self.column + "parse_expression():")
         self.parse_term()
         F = True
 
@@ -397,16 +419,17 @@ class Parser:
             num_line, lex, tok = self.get_sym()
             if tok in ("add_op", "power_op"):
                 self.num_row += 1
-                print("\t" * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
+                print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
                 self.parse_term()
             else:
                 F = False
 
         return True
 
+
     def parse_term(self):
         self.column += 1
-        print("\t" * self.column + "parse_term():")
+        print(" " * self.column + "parse_term():")
         self.parse_factor()
         F = True
 
@@ -414,26 +437,27 @@ class Parser:
             num_line, lex, tok = self.get_sym()
             if tok in "mult_op":
                 self.num_row += 1
-                print("\t" * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
+                print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
                 self.parse_factor()
             else:
                 F = False
         return True
 
+
     def parse_factor(self):
         self.column += 1
-        print("\t" * self.column + "parse_factor():")
+        print(" " * self.column + "parse_factor():")
         num_line, lex, tok = self.get_sym()
 
-        print("\t" * self.column + "parseFactor(): рядок: {0} (lex, tok): {1}".format(num_line, (lex, tok)))
+        print(" " * self.column + "parseFactor(): рядок: {0} (lex, tok): {1}".format(num_line, (lex, tok)))
         if tok in ("intnum", "doublenum", "id"):
             self.num_row += 1
-            print("\t" * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
+            print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
         elif lex == "(":
             self.num_row += 1
             self.parse_expression()
-            self.parse_token(")", "breacket_op", "\t"*7)
-            print("\t" * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
+            self.parse_token(")", "breacket_op")
+            print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
         elif lex == "-" and tok == "add_op":
             self.num_row += 1
             self.parse_factor()
@@ -446,19 +470,20 @@ class Parser:
             return True
 
         else:
-            self.fail_parse("Невiдповiднiсть у Expression.Factor", (num_line, lex, tok, "int, double, bool, id або (Expression)"))
+            self.fail_parse("Невiдповiднiсть у Expression.Factor", (num_line, lex, tok, "intnum, doublenum, id або (Expression)"))
 
         return True
-    
+
+
     def parse_power(self):
         self.column += 1
-        print("\t" * self.column + "parse_power():")
+        print(" " * self.column + "parse_power():")
         self.parse_factor()
         num_line, lex, tok = self.get_sym()
 
         if tok == "power_op" and lex == "^":
             self.num_row += 1
-            print("\t" * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
+            print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
             self.parse_factor()
         else:
             self.fail_parse("Невiдповiднiсть у Power", (num_line, lex, tok, "^ Factor"))
@@ -471,47 +496,47 @@ print('-' * 30)
 parser = Parser().parse_main()
 """
     def parse_id(self):
-        print("\t" * 6 + "parse_id():")
+        print(" " * 6 + "parse_id():")
         while True:
             num_line, lex, tok = self.get_sym()
             if tok in "id":
                 self.num_row += 1
-                print('\t' * 7 + 'в рядку {0} - {1}'.format(num_line, (lex, tok)))
+                print(" " * 7 + 'в рядку {0} - {1}'.format(num_line, (lex, tok)))
             else:
                 break
         return True
         
             def parse_readline(self):
-        print("\t" * 4 + "parse_readline():")
+        print(" " * 4 + "parse_readline():")
         _, lex, tok = self.get_sym()
         if lex == "readline" and tok == "keyword":
-            print('\t' * 7 + 'в рядку {0} - {1}'.format(lex, tok))
+            print(" " * 7 + 'в рядку {0} - {1}'.format(lex, tok))
             self.num_row += 1
-            self.parse_token("(", "breacket_op", "\t")
+            self.parse_token("(", "breacket_op")
             # self.parse_id_list()
             if not self.parse_id_list():
                 self.fail_parse("Невідповідність токенів", (self.num_row, lex, tok, 'id'))
-            self.parse_token(")", "breacket_op", "\t")
+            self.parse_token(")", "breacket_op")
             return True
         else:
             return False
 """
 """
     def parse_ind_expression(self):
-        print("\t" * 4 + "parse_ind_expression():")
+        print(" " * 4 + "parse_ind_expression():")
         _, lex, tok = self.get_sym()
         if lex == "int" or lex == "double":
             self.num_row += 1
-            print('\t' * 5 + 'в рядку {0} - {1}'.format(lex, tok))
+            print(" " * 5 + 'в рядку {0} - {1}'.format(lex, tok))
             self.parse_id()
 
             self.parse_assign()
 
         #    self.parse_expression()
 
-            self.parse_token(";", "punct", "\t")
+            self.parse_token(";", "punct")
             self.parse_bool_expr()
-            self.parse_token(";", "punct", "\t")
+            self.parse_token(";", "punct")
             self.parse_id()
             self.parse_assign()
 
