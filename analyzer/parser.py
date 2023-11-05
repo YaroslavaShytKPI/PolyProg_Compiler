@@ -1,16 +1,15 @@
 from lexical_analyzer import lex, table_of_sym
 
+
 class Parser:
     num_row = 1
     column = 1
-
 
     def __new__(cls):
         if not hasattr(cls, 'instance'):
             cls.instance = super(Parser, cls).__new__(cls)
         
         return cls.instance
-
 
     # Program =  main ‘()‘ ‘{’ DeclarList DoSection ‘}’
     def parse_main(self):
@@ -25,7 +24,6 @@ class Parser:
         
         except SystemExit as e:
             print(f"Parses: Аварійне завершення програми з кодом {0}".format(e))
-
 
     def parse_token(self, lexeme, token):
         if self.num_row > len(table_of_sym):
@@ -54,23 +52,25 @@ class Parser:
     def fail_parse(self, str, tuple):
         if str == "Неочікуваний кінець програми":
             (lexeme, token, self.num_row) = tuple
-            print("Parser ERROR: \n\t Неочікуваний кінець програми - в таблиці символів (розбору) немає запису з номером {1}.\n\t Очікувалось - {0}".format(
-                  (lexeme, token), self.num_row))
+            print("Parser ERROR: \n\t Неочікуваний кінець програми - в таблиці символів (розбору) немає запису з "
+                  "номером {1}.\n\t Очікувалось - {0}".format((lexeme, token), self.num_row))
             exit(1001)
 
         if str == "get_sym(): Неочікуваний кінець програми":
             self.num_row = tuple
-            print("Parser ERROR: \n\t Неочікуваний кінець програми - в таблиці символів (розбору) немає запису з номером {0}. \n\t Останній запис - {1}".format(
+            print("Parser ERROR: \n\t Неочікуваний кінець програми - в таблиці символів (розбору) немає запису з "
+                  "номером {0}. \n\t Останній запис - {1}".format(
                   self.num_row, table_of_sym[self.num_row-1]))
             exit(1002)
 
         elif str == "Невідповідність токенів":
             (num_line, lexeme, token, lex, tok) = tuple
-            print("Parser ERROR: \n\t В рядку {0} неочікуваний елемент ({1}, {2}). \n\t Очікувався - ({3}, {4}).".format(
-                  num_line, lexeme, token, lex, tok))
+            print("Parser ERROR: \n\t В рядку {0} неочікуваний елемент ({1}, {2}). \n\t Очікувався - ({3}, {4}).".
+                  format(num_line, lexeme, token, lex, tok))
             exit(1)
 
         elif str == "Невідповідність інструкцій":
+            print('heree')
             (num_line, lex, tok, expected) = tuple
             print("Parser ERROR: \n\t В рядку {0} неочікуваний елемент ({1}, {2}). \n\t Очікувався - {3}.".format(
                 num_line, lex, tok, expected))
@@ -385,7 +385,7 @@ class Parser:
             # self.parse_id_list()
             if not self.parse_id_list():
                 _, lex, tok = self.get_sym()
-                self.fail_parse("Невiдповiднiсть інструкцій", (num_line, lex, tok, 'id'))
+                self.fail_parse("Невідповідність інструкцій", (num_line, lex, tok, 'id'))
             self.parse_token(")", "breacket_op")
             return True
         else:
