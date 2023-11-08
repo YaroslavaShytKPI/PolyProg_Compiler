@@ -352,8 +352,6 @@ class Parser:
             self.num_row += 1
             self.parse_token("(", "breacket_op")
             self.parse_expression()
-       #     if not self.parse_id():
-       #         self.fail_parse("Невідповідність токенів", (self.num_row, lex, tok, 'id'))
             self.parse_token(")", "breacket_op")
             return True
         else:
@@ -367,22 +365,18 @@ class Parser:
         if not self.parse_id():
             return False
 
-        #while self.parse_id():
         while True:
             num_line, lex, tok = self.get_sym()
-         #   print(num_line, lex, tok)
-         #   self.num_row += 1
+
             if lex == ",":
                 print(" " * self.column + 'в рядку {0} - {1}'.format(num_line, (lex, tok)))
                 self.parse_token(",", "punct")
                 num_line, lex, tok = self.get_sym()
                 if lex == ")":
                     self.fail_parse("Невідповідність інструкцій", (num_line, lex, tok, 'id'))
-                #self.num_row += 1
-                #self.parse_token(",", "punct")
+
                 if not self.parse_id():
                     self.fail_parse("Невідповідність інструкцій", (num_line, lex, tok, 'id'))
-              #  self.parse_id()
             elif lex == ")":
                 break
             else:
@@ -415,7 +409,7 @@ class Parser:
             print(" " * self.column + 'в рядку {0} - {1}'.format(lex, tok))
             self.num_row += 1
             self.parse_token("(", "breacket_op")
-            # self.parse_id_list()
+
             if not self.parse_id_list():
                 _, lex, tok = self.get_sym()
                 self.fail_parse("Невідповідність інструкцій", (num_line, lex, tok, 'id'))
@@ -434,7 +428,6 @@ class Parser:
         print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
 
         if self.parse_token("=", "assign_op"):
-           # self.num_row += 1
             self.parse_expression()
             return True
         else:
@@ -500,10 +493,6 @@ class Parser:
         elif lex == "^" and tok == "power_op":
             self.num_row += 1
             self.parse_power()
-
-     #   elif lex == "true" or lex == "false":
-      #      self.num_row += 1
-      #      return True
         elif lex == "true" or lex == "false":
             # Перевірка контексту для правильного використання true та false
             if self.check_bool_context():
