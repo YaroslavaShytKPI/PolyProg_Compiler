@@ -1,5 +1,5 @@
 main {
-	int x; 
+	int x;
 	bool ind;
 	double num;
     readline(x);

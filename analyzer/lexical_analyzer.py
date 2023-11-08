@@ -8,7 +8,7 @@ table_of_sym = {}    # таблиця символів програми (таб�
 state = init_state   # поточний стан
 
 
-f = open('test_files/test.pol', 'r')  # зчитування файлу програми мовою PolyProg   f = open('../test_files/test.pol', 'r')
+f = open('test_files/tst.pol', 'r')  # зчитування файлу програми мовою PolyProg   f = open('../test_files/test.pol', 'r')
 source_code = f.read()
 f.close()
 
@@ -177,10 +177,10 @@ def fail():
 
 
 # запуск лексичного аналізатора
-#lex()
+# lex()
 
-# Таблиці: розбору, ідентифікаторів та констант
-#print('-' * 50)
-#print('Table Of Symbols: {0}'.format(table_of_sym))
-#print('Table Of IDs    : {0}'.format(table_of_id))
-#print('Table Of Const  : {0}'.format(table_of_const))
+# # Таблиці: розбору, ідентифікаторів та констант
+# print('-' * 50)
+# print('Table Of Symbols: {0}'.format(table_of_sym))
+# print('Table Of IDs    : {0}'.format(table_of_id))
+# print('Table Of Const  : {0}'.format(table_of_const))

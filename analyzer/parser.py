@@ -1,9 +1,9 @@
-from lexical_analyzer import lex, table_of_sym
-
+from lexical_analyzer import lex, table_of_sym, table_of_const
 
 class Parser:
     num_row = 1
     column = 1
+    table_of_vars = {}
 
     def __new__(cls):
         if not hasattr(cls, 'instance'):
@@ -87,6 +87,41 @@ class Parser:
             print("Parser ERROR: \n\t В рядку {0} неочікуваний елемент ({1}, {2}). \n\t Очікувався - {3}.".format(
                 num_line, lex, tok, expected))
             exit(4)
+        
+        elif str == "Повторне оголошення змiнної":
+            (num_line, lex) = tuple
+            print("Semantic ERROR: В рядку {0} повторне оголошення змінної - {1}.".format(
+                num_line, lex))
+            exit(5)
+
+        elif str == "Використання неоголошеної змінної":
+            (num_line, lex) = tuple
+            print("Semantic ERROR: В рядку {0} використання неоголошеної змінної - {1}.".format(
+                num_line, lex))
+            exit(6)
+        
+        elif str == "Використання невизначеної змінної":
+            (num_line, lex) = tuple
+            print("Semantic ERROR: В рядку {0} використання невизначеної змінної - {1}.".format(
+                num_line, lex))
+            exit(7)
+        
+        elif str == "Тип не відповідає оголошенню":
+            (num_line, type) = tuple
+            print("Type ERROR: В рядку {0} тип не відповідає оголошенню - {1}.".format(
+                num_line, type))
+            exit(8)
+
+
+    def is_declared_var(self, num_line, lex):
+        if lex not in self.table_of_vars:
+            self.fail_parse("Використання неоголошеної змінної", (num_line, lex))
+    
+
+    def is_defined_var(self, num_line, lex):
+        if self.table_of_vars[lex][2] == "undefined":
+            self.fail_parse("Використання невизначеної змінної", (num_line, lex))
+
 
     # StatementList = Statement {';' Statement}
     def parse_statement_list(self):
@@ -104,6 +139,8 @@ class Parser:
         num_line, lex, tok = self.get_sym()
 
         if tok == "id":
+            self.is_declared_var(num_line, lex)
+
             self.parse_assign()
             self.parse_token(";", "punct")
             return True
@@ -154,6 +191,16 @@ class Parser:
             return False
 
 
+    def proc_table_of_var(self, num_line, lex, type, value):
+      indx = self.table_of_vars.get(lex)
+
+      if indx is None:
+          indx = len(self.table_of_vars) + 1
+          self.table_of_vars[lex] = (indx, type, value)
+      else: 
+          self.fail_parse("Повторне оголошення змiнної", (num_line, lex))
+
+
     def parse_declaration(self):
         self.column += 1
         print(" " * self.column + "parse_declaration():")
@@ -163,20 +210,24 @@ class Parser:
             print(" " * self.column + 'в рядку {0} - {1}'.format(lex, tok))
             self.num_row += 1
 
-            if not self.parse_id_declaration_list():
+            if not self.parse_id_declaration_list(lex):
                 num_line, lex, tok = self.get_sym()
                 self.fail_parse("Невідповідність інструкцій", (num_line, lex, tok, 'id'))
-            
+
             self.parse_token(";", "punct")
+            print(self.table_of_vars)
 
             return True
         else:
-            return False
+            False
 
 
-    def parse_id_declaration_list(self):
+    def parse_id_declaration_list(self, type):
         self.column += 1
         print(" " * self.column + "parse_id_declaration_list():")
+
+        num_line, lex, tok = self.get_sym()
+        self.proc_table_of_var(num_line, lex, type, "undefined")
 
         if not self.parse_id():
             return False
@@ -188,6 +239,7 @@ class Parser:
                 print(" " * self.column + 'в рядку {0} - {1}'.format(num_line, (lex, tok)))
                 self.parse_token(",", "punct")
                 num_line, lex, tok = self.get_sym()
+                self.proc_table_of_var(num_line, lex, type, "undefined")
 
                 if not self.parse_id():
                     self.fail_parse("Невідповідність інструкцій", (self.num_row, lex, tok, 'id'))
@@ -267,7 +319,7 @@ class Parser:
     def parse_if(self):
         self.column += 1
         print(" " * self.column + "parse_if():")
-        num_line, lex, tok = self.get_sym()
+        _, lex, tok = self.get_sym()
 
         if lex == "if" and tok == "keyword":
             self.num_row += 1
@@ -297,8 +349,6 @@ class Parser:
 
         if tok in ('rel_op'):
             self.num_row += 1
-            if lex not in valid_rel_ops:
-                self.fail_parse("Невідповідність в BoolExpr", (num_line, lex, tok, 'rel_op'))
 
             if lex in ('==', '!='):
                 self.parse_expression()
@@ -323,7 +373,7 @@ class Parser:
         if self.num_row < 2:
             return
         prev_row = table_of_sym[self.num_row + n]
-        _, prev_lex, prev_tok, _ = prev_row
+        num_line, prev_lex, prev_tok, _ = prev_row
         if prev_tok in ('intnum', 'doublenum'):
             return 'numeric'
         elif (prev_lex, prev_tok) in [('true', 'boolval'), ('false', 'boolval')]:
@@ -392,6 +442,8 @@ class Parser:
         print(" " * self.column + "parse_id():")
         num_line, lex, tok = self.get_sym()
 
+        self.is_declared_var(num_line, lex)
+
         if tok in "id":
             self.num_row += 1
             print(" " * self.column + 'в рядку {0} - {1}'.format(num_line, (lex, tok)))
@@ -428,16 +480,37 @@ class Parser:
         print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
 
         if self.parse_token("=", "assign_op"):
-            self.parse_expression()
+            if self.parse_expression():
+                self.table_of_vars[lex] = (self.table_of_vars[lex][0], self.table_of_vars[lex][1], 'assign')
             return True
         else:
             return False
 
 
+    def get_const_type(self, literal):
+        return table_of_const[literal][1]
+    
+
+    def get_op_type(self, l_type, op, r_type):
+        # типи збiгаються?
+        types_are_same = l_type == r_type
+        # типи арифметичнi?
+        types_arithm = l_type in ('int','double') and r_type in ('int','double')
+
+        if types_are_same and types_arithm and op in '+-*/': 
+            result_type = l_type
+        elif types_are_same and types_arithm and op in ('<','<=','>','>=','=','<>'):
+            result_type = 'bool'
+        else: 
+            result_type = 'type_error'
+        
+        return result_type
+
+
     def parse_expression(self):
         self.column += 1
         print(" " * self.column + "parse_expression():")
-        self.parse_term()
+        l_type = self.parse_term()
         F = True
 
         while F:
@@ -445,7 +518,13 @@ class Parser:
             if tok in ("add_op", "power_op", "mult_op"):
                 self.num_row += 1
                 print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
-                self.parse_term()
+                r_type = self.parse_term()
+                result_type = self.get_op_type(l_type, lex, r_type)
+
+                if (result_type != "type_error"):
+                    l_type = r_type
+                else:
+                    self.fail_parse("Тип не відповідає оголошенню", (num_line, result_type))
             else:
                 F = False
 
@@ -479,7 +558,14 @@ class Parser:
         num_line, lex, tok = self.get_sym()
 
         print(" " * self.column + "parseFactor(): рядок: {0} (lex, tok): {1}".format(num_line, (lex, tok)))
-        if tok in ("intnum", "doublenum", "id"):
+        if tok in ("intnum", "doublenum"):
+            self.num_row += 1
+            print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
+        elif tok == "id":
+            self.is_declared_var(num_line, lex)
+            
+            self.is_defined_var(num_line, lex)
+            
             self.num_row += 1
             print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
         elif lex == "(":

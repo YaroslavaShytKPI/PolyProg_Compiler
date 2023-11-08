@@ -1,0 +1,7 @@
+main {
+	int x;
+  x = true;
+  if (x > 0) {
+    readline(x);
+  }
+}
