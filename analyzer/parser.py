@@ -1,16 +1,15 @@
 from lexical_analyzer import lex, table_of_sym
 
+
 class Parser:
     num_row = 1
     column = 1
-
 
     def __new__(cls):
         if not hasattr(cls, 'instance'):
             cls.instance = super(Parser, cls).__new__(cls)
         
         return cls.instance
-
 
     # Program =  main ‘()‘ ‘{’ DeclarList DoSection ‘}’
     def parse_main(self):
@@ -25,7 +24,6 @@ class Parser:
         
         except SystemExit as e:
             print(f"Parses: Аварійне завершення програми з кодом {0}".format(e))
-
 
     def parse_token(self, lexeme, token):
         if self.num_row > len(table_of_sym):
@@ -54,23 +52,25 @@ class Parser:
     def fail_parse(self, str, tuple):
         if str == "Неочікуваний кінець програми":
             (lexeme, token, self.num_row) = tuple
-            print("Parser ERROR: \n\t Неочікуваний кінець програми - в таблиці символів (розбору) немає запису з номером {1}.\n\t Очікувалось - {0}".format(
-                  (lexeme, token), self.num_row))
+            print("Parser ERROR: \n\t Неочікуваний кінець програми - в таблиці символів (розбору) немає запису з "
+                  "номером {1}.\n\t Очікувалось - {0}".format((lexeme, token), self.num_row))
             exit(1001)
 
         if str == "get_sym(): Неочікуваний кінець програми":
             self.num_row = tuple
-            print("Parser ERROR: \n\t Неочікуваний кінець програми - в таблиці символів (розбору) немає запису з номером {0}. \n\t Останній запис - {1}".format(
+            print("Parser ERROR: \n\t Неочікуваний кінець програми - в таблиці символів (розбору) немає запису з "
+                  "номером {0}. \n\t Останній запис - {1}".format(
                   self.num_row, table_of_sym[self.num_row-1]))
             exit(1002)
 
         elif str == "Невідповідність токенів":
             (num_line, lexeme, token, lex, tok) = tuple
-            print("Parser ERROR: \n\t В рядку {0} неочікуваний елемент ({1}, {2}). \n\t Очікувався - ({3}, {4}).".format(
-                  num_line, lexeme, token, lex, tok))
+            print("Parser ERROR: \n\t В рядку {0} неочікуваний елемент ({1}, {2}). \n\t Очікувався - ({3}, {4}).".
+                  format(num_line, lexeme, token, lex, tok))
             exit(1)
 
         elif str == "Невідповідність інструкцій":
+            print('heree')
             (num_line, lex, tok, expected) = tuple
             print("Parser ERROR: \n\t В рядку {0} неочікуваний елемент ({1}, {2}). \n\t Очікувався - {3}.".format(
                 num_line, lex, tok, expected))
@@ -290,23 +290,56 @@ class Parser:
         else: 
             return False
 
-
     def parse_bool_expr(self):
         self.parse_expression()
         num_line, lex, tok = self.get_sym()
+        valid_rel_ops = ['<', '>', '<=', '>=', '==', '!=']
 
         if tok in ('rel_op'):
             self.num_row += 1
-            print(" " * self.column + 'в рядку {0} - {1}'.format(num_line, (lex, tok)))
+            if lex not in valid_rel_ops:
+                self.fail_parse("Невідповідність в BoolExpr", (num_line, lex, tok, 'rel_op'))
+
+            if lex in ('==', '!='):
+                self.parse_expression()
+            else:
+                left_exp_type = self.get_exp_type(-2)
+                right_exp_type = self.get_exp_type(0)
+                if (left_exp_type == 'boolval' and right_exp_type == 'boolval') or \
+                   (left_exp_type != 'boolval' and right_exp_type != 'boolval'):
+                    self.parse_expression()
+                else:
+                    num_line, lex, tok = self.get_sym()
+                    self.fail_parse("Невідповідність в BoolExpr", (num_line, lex, tok, 'id'))
+
         elif tok in ("boolval"):
             self.num_row += 1
-            print(" " * self.column + 'в рядку {0} - {1}'.format(num_line, (lex, tok)))
         else:
             self.fail_parse("Невідповідність в BoolExpr", (num_line, lex, tok, 'rel_op'))
-        
-        self.parse_expression()
 
         return True
+
+    def get_exp_type(self, n):
+        if self.num_row < 2:
+            return
+        prev_row = table_of_sym[self.num_row + n]
+        _, prev_lex, prev_tok, _ = prev_row
+        if prev_tok in ('intnum', 'doublenum'):
+            return 'numeric'
+        elif (prev_lex, prev_tok) in [('true', 'boolval'), ('false', 'boolval')]:
+            return 'boolval'
+        elif prev_tok == "id":
+            return "id"
+        else:
+            return 'unknown'
+
+    def check_bool_context(self):
+        if self.num_row < 2:
+            return False
+        prev_row = table_of_sym[self.num_row - 1]
+        prev_lex = prev_row[1]
+        return prev_lex in ("==", "!=")
+
 
 
     # Output = print '(' id ')'
@@ -385,7 +418,7 @@ class Parser:
             # self.parse_id_list()
             if not self.parse_id_list():
                 _, lex, tok = self.get_sym()
-                self.fail_parse("Невiдповiднiсть інструкцій", (num_line, lex, tok, 'id'))
+                self.fail_parse("Невідповідність інструкцій", (num_line, lex, tok, 'id'))
             self.parse_token(")", "breacket_op")
             return True
         else:
@@ -403,7 +436,6 @@ class Parser:
         if self.parse_token("=", "assign_op"):
            # self.num_row += 1
             self.parse_expression()
-
             return True
         else:
             return False
@@ -417,7 +449,7 @@ class Parser:
 
         while F:
             num_line, lex, tok = self.get_sym()
-            if tok in ("add_op", "power_op"):
+            if tok in ("add_op", "power_op", "mult_op"):
                 self.num_row += 1
                 print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
                 self.parse_term()
@@ -439,6 +471,10 @@ class Parser:
                 self.num_row += 1
                 print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
                 self.parse_factor()
+            if lex in ("true", "false"):
+                self.fail_parse("Невідповідність в BoolExpr",
+                                (num_line, lex, tok, "intnum, doublenum, id або (Expression)"))
+
             else:
                 F = False
         return True
@@ -465,15 +501,35 @@ class Parser:
             self.num_row += 1
             self.parse_power()
 
+     #   elif lex == "true" or lex == "false":
+      #      self.num_row += 1
+      #      return True
         elif lex == "true" or lex == "false":
-            self.num_row += 1
-            return True
+            # Перевірка контексту для правильного використання true та false
+            if self.check_bool_context():
+                self.num_row += 1
+                num_line, lex, tok = self.get_sym()
+                if tok in ("add_op", "mult_op", "power_op"):
+                    self.fail_parse("Невідповідність в BoolExpr",
+                                    (num_line, lex, tok, "rel_op)"))
+                print(" " * self.column + 'в рядку {0} - {1}'.format(num_line, (lex, tok)))
+                return True
+            else:
+                self.fail_parse("Невідповідність в BoolExpr",
+                                (num_line, lex, tok, "intnum, doublenum, id або (Expression)"))
 
         else:
             self.fail_parse("Невiдповiднiсть у Expression.Factor", (num_line, lex, tok, "intnum, doublenum, id або (Expression)"))
 
         return True
 
+    def check_bool_context(self):
+        if self.num_row < 2:
+            return False
+        prev_row = table_of_sym[self.num_row - 1]
+        prev_lex = prev_row[1]
+        verdad = prev_lex in ("==", "!=", "<", ">", "<=" ">=") or prev_row[1] == "="
+        return prev_lex in ("==", "!=", "<", ">", "<=" ">=", "(") or prev_row[1] == "="
 
     def parse_power(self):
         self.column += 1
@@ -494,72 +550,3 @@ print('-' * 30)
 print('tableOfSymb:{0}'.format(table_of_sym))
 print('-' * 30)
 parser = Parser().parse_main()
-"""
-    def parse_id(self):
-        print(" " * 6 + "parse_id():")
-        while True:
-            num_line, lex, tok = self.get_sym()
-            if tok in "id":
-                self.num_row += 1
-                print(" " * 7 + 'в рядку {0} - {1}'.format(num_line, (lex, tok)))
-            else:
-                break
-        return True
-        
-            def parse_readline(self):
-        print(" " * 4 + "parse_readline():")
-        _, lex, tok = self.get_sym()
-        if lex == "readline" and tok == "keyword":
-            print(" " * 7 + 'в рядку {0} - {1}'.format(lex, tok))
-            self.num_row += 1
-            self.parse_token("(", "breacket_op")
-            # self.parse_id_list()
-            if not self.parse_id_list():
-                self.fail_parse("Невідповідність токенів", (self.num_row, lex, tok, 'id'))
-            self.parse_token(")", "breacket_op")
-            return True
-        else:
-            return False
-"""
-"""
-    def parse_ind_expression(self):
-        print(" " * 4 + "parse_ind_expression():")
-        _, lex, tok = self.get_sym()
-        if lex == "int" or lex == "double":
-            self.num_row += 1
-            print(" " * 5 + 'в рядку {0} - {1}'.format(lex, tok))
-            self.parse_id()
-
-            self.parse_assign()
-
-        #    self.parse_expression()
-
-            self.parse_token(";", "punct")
-            self.parse_bool_expr()
-            self.parse_token(";", "punct")
-            self.parse_id()
-            self.parse_assign()
-
-       #     self.parse_expression()
-
-            return True
-        else:
-            return False
-"""
-"""
-        elif (lex, tok) == ("if", "keyword"):
-            self.parse_if()
-            return True
-        elif (lex, tok) == ("print", "keyword"):
-            self.parse_print()
-            return True
-        elif (lex, tok) == ("readline", "keyword"):
-            self.parse_readline()
-            return True
-        elif (lex, tok) == ("for", "keyword"):
-            self.parse_for()
-            return True
-        elif (lex, tok) == ("do", "keyword"):
-            self.parse_do()
-            return True
-"""
