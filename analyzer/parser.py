@@ -504,9 +504,16 @@ class Parser:
         num_line, lex, tok = self.get_sym()
         self.num_row += 1
         l_type = self.get_var_type(lex)
+        if l_type == "intnum":
+            l_type = "int"
+        elif l_type == "doublenum":
+            l_type = "double"
+        elif l_type == "boolval":
+            l_type = "bool"
+
         print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
         self.parse_token("=", "assign_op")
-        r_type = self.parse_expression()
+        _, r_type = self.parse_expression() #???????????????
         res_type = self.get_op_type(l_type, "=", r_type)
 
         if res_type == "type_error":
@@ -544,7 +551,13 @@ class Parser:
     def parse_expression(self):
         self.column += 1
         print(" " * self.column + "parse_expression():")
-        l_type = self.parse_term()
+        _, l_type = self.parse_term()
+        if l_type == "intnum":
+            l_type = "int"
+        elif l_type == "doublenum":
+            l_type = "double"
+        elif l_type == "boolval":
+            l_type = "bool"
         F = True
 
         while F:
@@ -552,7 +565,7 @@ class Parser:
             if tok in ("add_op", "power_op", "mult_op"):
                 self.num_row += 1
                 print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
-                r_type = self.parse_term()
+                _, r_type = self.parse_term()
                 result_type = self.get_op_type(l_type, lex, r_type)
 
                 if (result_type != "type_error"):
@@ -562,13 +575,19 @@ class Parser:
             else:
                 F = False
 
-        return True
+        return [True, l_type]
 
 
     def parse_term(self):
         self.column += 1
         print(" " * self.column + "parse_term():")
-        self.parse_factor()
+        _, parsed_factor_token_left = self.parse_factor()
+        if parsed_factor_token_left == "intnum":
+            parsed_factor_token_left = "int"
+        elif parsed_factor_token_left == "doublenum":
+            parsed_factor_token_left = "double"
+        elif parsed_factor_token_left == "boolval":
+            parsed_factor_token_left = "bool"
         F = True
 
         while F:
@@ -576,14 +595,22 @@ class Parser:
             if tok in "mult_op":
                 self.num_row += 1
                 print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
-                self.parse_factor()
+                _, parsed_factor_token_right = self.parse_factor()
+                if parsed_factor_token_right == "intnum":
+                    parsed_factor_token_right = "int"
+                elif parsed_factor_token_right == "doublenum":
+                    parsed_factor_token_right = "double"
+                elif parsed_factor_token_right == "boolval":
+                    parsed_factor_token_right = "bool"
+                if parsed_factor_token_left != parsed_factor_token_right:
+                    self.fail_parse("Невідповідність типів", (num_line, parsed_factor_token_left, parsed_factor_token_right))
             if lex in ("true", "false"):
                 self.fail_parse("Невідповідність в BoolExpr",
                                 (num_line, lex, tok, "intnum, doublenum, id або (Expression)"))
 
             else:
                 F = False
-        return True
+        return [True, parsed_factor_token_left]
 
 
     def parse_factor(self):
@@ -625,7 +652,13 @@ class Parser:
                     self.fail_parse("Невідповідність в BoolExpr",
                                     (num_line, lex, tok, "rel_op)"))
                 print(" " * self.column + 'в рядку {0} - {1}'.format(num_line, (lex, tok)))
-                return True
+                if tok == "intnum":
+                    tok = "int"
+                elif tok == "doublenum":
+                    tok = "double"
+                elif tok == "boolval":
+                    tok = "bool"
+                return [True, tok]
             else:
                 self.fail_parse("Невідповідність в BoolExpr",
                                 (num_line, lex, tok, "intnum, doublenum, id або (Expression)"))
@@ -633,7 +666,7 @@ class Parser:
         else:
             self.fail_parse("Невiдповiднiсть у Expression.Factor", (num_line, lex, tok, "intnum, doublenum, id або (Expression)"))
 
-        return True
+        return [True, tok]
 
     def check_bool_context(self):
         if self.num_row < 2:

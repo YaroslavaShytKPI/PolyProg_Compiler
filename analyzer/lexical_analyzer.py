@@ -8,7 +8,7 @@ table_of_sym = {}    # таблиця символів програми (таб�
 state = init_state   # поточний стан
 
 
-f = open('test_files/tst.pol', 'r')  # зчитування файлу програми мовою PolyProg   f = open('../test_files/test.pol', 'r')
+f = open('../test_files/tst.pol', 'r')  # зчитування файлу програми мовою PolyProg   f = open('../test_files/test.pol', 'r')
 source_code = f.read()
 f.close()
 
