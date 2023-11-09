@@ -19,6 +19,7 @@ class Parser:
             self.parse_statement_list()
             self.parse_token("}", "breacket_op")
             print("Parser: Синтаксичний аналiз завершився успiшно")
+            print(self.table_of_vars)
 
             return True
         
@@ -112,15 +113,36 @@ class Parser:
                 num_line, type))
             exit(8)
 
+        elif str == "Невідповідність типів":
+            (num_line, l_type, r_type) = tuple
+            print("Type ERROR: В рядку {0} невідповідність типів - {1}, {2}.".format(
+                num_line, l_type, r_type))
+            exit(8)
 
-    def is_declared_var(self, num_line, lex):
-        if lex not in self.table_of_vars:
-            self.fail_parse("Використання неоголошеної змінної", (num_line, lex))
+
+    # def is_declared_var(self, num_line, lex):
+    #     if lex not in self.table_of_vars:
+    #         self.fail_parse("Використання неоголошеної змінної", (num_line, lex))
     
 
-    def is_defined_var(self, num_line, lex):
-        if self.table_of_vars[lex][2] == "undefined":
-            self.fail_parse("Використання невизначеної змінної", (num_line, lex))
+    # def is_defined_var(self, num_line, lex):
+    #     if self.table_of_vars[lex][2] == "undefined":
+    #         self.fail_parse("Використання невизначеної змінної", (num_line, lex))
+    def get_var_type(self, id):
+        try:
+            return self.table_of_vars[id][1]
+        except KeyError:
+            return "undeclared_variable"
+
+
+    def is_var_init(self, id):
+        try:
+            if self.table_of_vars[id][2] == "assign":
+                return True
+            else:
+                return False
+        except KeyError:
+            return "undeclared_variable"
 
 
     # StatementList = Statement {';' Statement}
@@ -139,7 +161,9 @@ class Parser:
         num_line, lex, tok = self.get_sym()
 
         if tok == "id":
-            self.is_declared_var(num_line, lex)
+            # self.is_declared_var(num_line, lex)
+            if self.get_var_type(lex) == "undeclared_variable":
+                self.fail_parse("Використання неоголошеної змінної", (num_line, lex))
 
             self.parse_assign()
             self.parse_token(";", "punct")
@@ -442,7 +466,9 @@ class Parser:
         print(" " * self.column + "parse_id():")
         num_line, lex, tok = self.get_sym()
 
-        self.is_declared_var(num_line, lex)
+        # self.is_declared_var(num_line, lex)
+        if self.get_var_type(lex) == "undeclared_variable":
+            self.fail_parse("Використання неоголошеної змінної", (num_line, lex))
 
         if tok in "id":
             self.num_row += 1
@@ -477,14 +503,20 @@ class Parser:
         print(" " * self.column + "parse_assign():")
         num_line, lex, tok = self.get_sym()
         self.num_row += 1
+        l_type = self.get_var_type(lex)
         print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
+        self.parse_token("=", "assign_op")
+        r_type = self.parse_expression()
+        res_type = self.get_op_type(l_type, "=", r_type)
 
-        if self.parse_token("=", "assign_op"):
-            if self.parse_expression():
-                self.table_of_vars[lex] = (self.table_of_vars[lex][0], self.table_of_vars[lex][1], 'assign')
-            return True
-        else:
-            return False
+        if res_type == "type_error":
+            self.fail_parse("Невідповідність типів", (num_line, l_type, r_type))
+        # if self.parse_token("=", "assign_op"):
+        #     if self.parse_expression():
+        #         self.table_of_vars[lex] = (self.table_of_vars[lex][0], self.table_of_vars[lex][1], 'assign')
+        #     return True
+        # else:
+        #     return False
 
 
     def get_const_type(self, literal):
@@ -501,6 +533,8 @@ class Parser:
             result_type = l_type
         elif types_are_same and types_arithm and op in ('<','<=','>','>=','=','<>'):
             result_type = 'bool'
+        elif types_are_same and op in (':='):
+            result_type = 'void'
         else: 
             result_type = 'type_error'
         
@@ -562,9 +596,12 @@ class Parser:
             self.num_row += 1
             print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
         elif tok == "id":
-            self.is_declared_var(num_line, lex)
+            # self.is_declared_var(num_line, lex)
+            if self.get_var_type(lex) == "undeclared_variable":
+                self.fail_parse("Використання неоголошеної змінної", (num_line, lex))
             
-            self.is_defined_var(num_line, lex)
+            if self.is_var_init(lex) == False:
+                self.fail_parse("Використання невизначеної змінної", (num_line, lex))
             
             self.num_row += 1
             print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
