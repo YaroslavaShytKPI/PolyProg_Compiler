@@ -106,12 +106,6 @@ class Parser:
             print("Semantic ERROR: В рядку {0} використання невизначеної змінної - {1}.".format(
                 num_line, lex))
             exit(7)
-        
-        elif str == "Тип не відповідає оголошенню":
-            (num_line, type) = tuple
-            print("Type ERROR: В рядку {0} тип не відповідає оголошенню - {1}.".format(
-                num_line, type))
-            exit(8)
 
         elif str == "Невідповідність типів":
             (num_line, l_type, r_type) = tuple
@@ -515,7 +509,7 @@ class Parser:
         self.parse_token("=", "assign_op")
         _, r_type = self.parse_expression() #???????????????
         res_type = self.get_op_type(l_type, "=", r_type)
-
+        
         if res_type == "type_error":
             self.fail_parse("Невідповідність типів", (num_line, l_type, r_type))
         # if self.parse_token("=", "assign_op"):
@@ -536,7 +530,7 @@ class Parser:
         # типи арифметичнi?
         types_arithm = l_type in ('int','double') and r_type in ('int','double')
 
-        if types_are_same and types_arithm and op in '+-*/': 
+        if types_are_same and types_arithm and op in '+-*/^': 
             result_type = l_type
         elif types_are_same and types_arithm and op in ('<','<=','>','>=','=','<>'):
             result_type = 'bool'
@@ -571,7 +565,7 @@ class Parser:
                 if (result_type != "type_error"):
                     l_type = r_type
                 else:
-                    self.fail_parse("Тип не відповідає оголошенню", (num_line, result_type))
+                    self.fail_parse("Невідповідність типів", (num_line, l_type, r_type))
             else:
                 F = False
 
@@ -622,6 +616,8 @@ class Parser:
         if tok in ("intnum", "doublenum"):
             self.num_row += 1
             print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
+            return [True, tok]
+        
         elif tok == "id":
             # self.is_declared_var(num_line, lex)
             if self.get_var_type(lex) == "undeclared_variable":
@@ -632,17 +628,25 @@ class Parser:
             
             self.num_row += 1
             print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
+            return [True, self.get_var_type(lex)]
+
         elif lex == "(":
             self.num_row += 1
-            self.parse_expression()
+            _, exp_type = self.parse_expression()
             self.parse_token(")", "breacket_op")
             print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
+            return [True, exp_type]
+        
         elif lex == "-" and tok == "add_op":
             self.num_row += 1
-            self.parse_factor()
+            _, factor_type = self.parse_factor()
+            return [True, factor_type]
+
         elif lex == "^" and tok == "power_op":
             self.num_row += 1
             self.parse_power()
+            return [True, "power_op"]
+
         elif lex == "true" or lex == "false":
             # Перевірка контексту для правильного використання true та false
             if self.check_bool_context():
@@ -665,8 +669,7 @@ class Parser:
 
         else:
             self.fail_parse("Невiдповiднiсть у Expression.Factor", (num_line, lex, tok, "intnum, doublenum, id або (Expression)"))
-
-        return [True, tok]
+            return [True, None]
 
     def check_bool_context(self):
         if self.num_row < 2:
