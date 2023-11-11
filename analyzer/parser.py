@@ -670,7 +670,7 @@ class Parser:
         elif lex == "true" or lex == "false":
             # Перевірка контексту для правильного використання true та false
             if self.check_bool_context():
-                # self.num_row += 1
+                self.num_row += 1
                 num_line, lex, tok = self.get_sym()
                 if tok in ("add_op", "mult_op", "power_op"):
                     self.fail_parse("Невідповідність в BoolExpr",
@@ -682,7 +682,11 @@ class Parser:
                     tok = "double"
                 elif tok == "boolval":
                     tok = "bool"
-                return [True, tok]
+
+                prev_row = table_of_sym[self.num_row - 1]
+                prev_tok = prev_row[2]
+
+                return [True, prev_tok]
             else:
                 self.fail_parse("Невідповідність в BoolExpr",
                                 (num_line, lex, tok, "intnum, doublenum, id або (Expression)"))
