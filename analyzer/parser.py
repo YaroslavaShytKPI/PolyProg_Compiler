@@ -113,6 +113,12 @@ class Parser:
                 num_line, l_type, r_type))
             exit(8)
 
+        elif str == "Ділення на нуль":
+            (num_line) = tuple
+            print("ERROR: В рядку {0} неможливе ділення на 0.".format(
+                num_line))
+            exit(8)
+
 
     # def is_declared_var(self, num_line, lex):
     #     if lex not in self.table_of_vars:
@@ -556,6 +562,13 @@ class Parser:
 
         while F:
             num_line, lex, tok = self.get_sym()
+            
+            if tok == "mult_op" and lex == "/":
+                # Перевірка ділення на нуль
+                self.num_row += 1
+                if self.get_sym()[2] == "intnum" and int(self.get_sym()[1]) == 0:
+                    self.fail_parse("Ділення на нуль", (num_line))
+
             if tok in ("add_op", "power_op", "mult_op"):
                 self.num_row += 1
                 print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
@@ -586,6 +599,13 @@ class Parser:
 
         while F:
             num_line, lex, tok = self.get_sym()
+            
+            if tok == "mult_op" and lex == "/":
+                # Перевірка ділення на нуль
+                self.num_row += 1
+                if self.get_sym()[2] == "intnum" and int(self.get_sym()[1]) == 0:
+                    self.fail_parse("Ділення на нуль", (num_line))
+
             if tok in "mult_op":
                 self.num_row += 1
                 print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
@@ -650,7 +670,7 @@ class Parser:
         elif lex == "true" or lex == "false":
             # Перевірка контексту для правильного використання true та false
             if self.check_bool_context():
-                self.num_row += 1
+                # self.num_row += 1
                 num_line, lex, tok = self.get_sym()
                 if tok in ("add_op", "mult_op", "power_op"):
                     self.fail_parse("Невідповідність в BoolExpr",
