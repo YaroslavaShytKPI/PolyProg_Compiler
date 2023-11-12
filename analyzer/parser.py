@@ -49,6 +49,12 @@ class Parser:
 
         return num_line, lexeme, token
 
+    def get_id_type_on_row(self, row):
+        for i in table_of_sym.values():
+            if i[0] == row:
+                return self.get_var_type(i[1])
+        return None
+    
 
     def fail_parse(self, str, tuple):
         if str == "Неочікуваний кінець програми":
@@ -220,7 +226,7 @@ class Parser:
 
       if indx is None:
           indx = len(self.table_of_vars) + 1
-          self.table_of_vars[lex] = (indx, type, value)
+          self.table_of_vars[lex] = (indx, type, value, num_line)
       else: 
           self.fail_parse("Повторне оголошення змiнної", (num_line, lex))
 
@@ -518,6 +524,8 @@ class Parser:
         
         if res_type == "type_error":
             self.fail_parse("Невідповідність типів", (num_line, l_type, r_type))
+        #added line   
+        self.table_of_vars[lex] = (self.table_of_vars[lex][0], self.table_of_vars[lex][1], 'assign')
         # if self.parse_token("=", "assign_op"):
         #     if self.parse_expression():
         #         self.table_of_vars[lex] = (self.table_of_vars[lex][0], self.table_of_vars[lex][1], 'assign')
@@ -536,9 +544,15 @@ class Parser:
         # типи арифметичнi?
         types_arithm = l_type in ('int','double') and r_type in ('int','double')
 
-        if types_are_same and types_arithm and op in '+-*/^': 
+        if (l_type == 'double' and r_type == 'int' ) and op in '+-*/^':  
             result_type = l_type
-        elif types_are_same and types_arithm and op in ('<','<=','>','>=','=','<>'):
+        elif (r_type == 'double' and l_type == 'int') and op in '+-*/^':
+            result_type = r_type
+        elif types_arithm and op in '/^':
+            result_type = 'double'
+        elif types_are_same and types_arithm and op in '+-*/^=': 
+            result_type = l_type
+        elif types_are_same and types_arithm and op in ('<','<=','>','>=','<>'):
             result_type = 'bool'
         elif types_are_same and op in (':='):
             result_type = 'void'
@@ -568,6 +582,8 @@ class Parser:
                 self.num_row += 1
                 if self.get_sym()[2] == "intnum" and int(self.get_sym()[1]) == 0:
                     self.fail_parse("Ділення на нуль", (num_line))
+                else:
+                    self.num_row -= 1
 
             if tok in ("add_op", "power_op", "mult_op"):
                 self.num_row += 1
@@ -576,7 +592,10 @@ class Parser:
                 result_type = self.get_op_type(l_type, lex, r_type)
 
                 if (result_type != "type_error"):
-                    l_type = r_type
+                    if result_type == 'double' and (r_type == 'int' or l_type == 'int'):
+                        l_type = result_type
+                    else:
+                        l_type = r_type
                 else:
                     self.fail_parse("Невідповідність типів", (num_line, l_type, r_type))
             else:
@@ -595,6 +614,7 @@ class Parser:
             parsed_factor_token_left = "double"
         elif parsed_factor_token_left == "boolval":
             parsed_factor_token_left = "bool"
+        exp_type = parsed_factor_token_left
         F = True
 
         while F:
@@ -605,6 +625,8 @@ class Parser:
                 self.num_row += 1
                 if self.get_sym()[2] == "intnum" and int(self.get_sym()[1]) == 0:
                     self.fail_parse("Ділення на нуль", (num_line))
+                else:
+                    self.num_row -= 1
 
             if tok in "mult_op":
                 self.num_row += 1
@@ -616,15 +638,20 @@ class Parser:
                     parsed_factor_token_right = "double"
                 elif parsed_factor_token_right == "boolval":
                     parsed_factor_token_right = "bool"
-                if parsed_factor_token_left != parsed_factor_token_right:
-                    self.fail_parse("Невідповідність типів", (num_line, parsed_factor_token_left, parsed_factor_token_right))
+                if parsed_factor_token_right != parsed_factor_token_right:
+                    current_row_var_type = self.get_id_type_on_row(num_line)
+                    if current_row_var_type != "double":
+                        self.fail_parse("Невідповідність типів", (num_line, parsed_factor_token_left, parsed_factor_token_right))
+                    #exp_type = self.get_op_type(parsed_factor_token_left, lex, parsed_factor_token_right)
+                exp_type = self.get_op_type(parsed_factor_token_left, lex, parsed_factor_token_right)
             if lex in ("true", "false"):
                 self.fail_parse("Невідповідність в BoolExpr",
                                 (num_line, lex, tok, "intnum, doublenum, id або (Expression)"))
 
             else:
                 F = False
-        return [True, parsed_factor_token_left]
+            
+        return [True, exp_type]
 
 
     def parse_factor(self):
@@ -722,3 +749,4 @@ print('-' * 30)
 print('tableOfSymb:{0}'.format(table_of_sym))
 print('-' * 30)
 parser = Parser().parse_main()
+
