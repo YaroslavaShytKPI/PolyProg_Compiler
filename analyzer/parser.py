@@ -121,7 +121,7 @@ class Parser:
 
         elif str == "Ділення на нуль":
             (num_line) = tuple
-            print("ERROR: В рядку {0} неможливе ділення на 0.".format(
+            print("ERROR: В рядку {0} ділення на 0.".format(
                 num_line))
             exit(8)
 
@@ -623,7 +623,8 @@ class Parser:
             if tok == "mult_op" and lex == "/":
                 # Перевірка ділення на нуль
                 self.num_row += 1
-                if self.get_sym()[2] == "intnum" and int(self.get_sym()[1]) == 0:
+                if (self.get_sym()[2] == "intnum" or self.get_sym()[2] == "doublenum") and \
+                   (self.get_sym()[1] == '0' or self.get_sym()[1] == '0.0'):
                     self.fail_parse("Ділення на нуль", (num_line))
                 else:
                     self.num_row -= 1
