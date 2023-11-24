@@ -745,9 +745,9 @@ class Parser:
             self.fail_parse("Невiдповiднiсть у Power", (num_line, lex, tok, "^ Factor"))
 
 
-lex()
-print('-' * 30)
-print('tableOfSymb:{0}'.format(table_of_sym))
-print('-' * 30)
-parser = Parser().parse_main()
+#lex()
+#print('-' * 30)
+#print('tableOfSymb:{0}'.format(table_of_sym))
+#print('-' * 30)
+#parser = Parser().parse_main()
 

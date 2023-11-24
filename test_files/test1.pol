@@ -1,4 +1,6 @@
-main() {
-  int x = 1 + 4;
-  print(x);
+main{
+  int a;
+  int x;
+  x = 2 + 4;
+  a = -5 + 7;
 }
