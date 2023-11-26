@@ -161,15 +161,41 @@ class Parser:
         _, lex, tok = self.get_sym()
         if lex == "for" and tok == "keyword":
             self.num_row += 1
+
+            start = self.createLabel()
+            action = self.createLabel()
+            increment = self.createLabel()
+            leave = self.createLabel()
+
             self.parse_token("(", "breacket_op")
             self.parse_assign()
+
+            self.setValLabel(start)
+
             self.parse_token(";", "punct")
             self.parse_bool_expr()
             self.parse_token(";", "punct")
+
+            postfix_code.append(leave)
+            postfix_code.append(('JF', 'jf'))
+            postfix_code.append(action)
+            postfix_code.append(('JMP', 'jump'))
+            self.setValLabel(increment)
+
             self.parse_assign()
             self.parse_token(")", "breacket_op")
+
+            postfix_code.append(start)
+            postfix_code.append(('JMP', 'jump'))
+            self.setValLabel(action)
+
             self.parse_token("{", "breacket_op")
             self.parse_statement_list()
+
+            postfix_code.append(increment)
+            postfix_code.append(('JMP', 'jump'))
+            self.setValLabel(leave)
+
             self.parse_token("}", "breacket_op")
             return True
         else:
