@@ -123,7 +123,7 @@ class Parser:
 
         while F:
             num_line, lex, tok = self.get_sym()
-            
+
             if tok == "mult_op" and lex == "/":
                 self.num_row += 1
                 if self.get_sym()[2] == "intnum" and int(self.get_sym()[1]) == 0:
@@ -131,7 +131,7 @@ class Parser:
                 else:
                     self.num_row -= 1  
 
-            if tok in ("add_op", "mult_op", "power_op"):
+            if tok in ("add_op", "power_op", "mult_op"):
                 temp_row = self.num_row
                 self.num_row += 1
                 _, r_type = self.parse_term()
@@ -229,25 +229,12 @@ class Parser:
 
         if lex == "while" and tok == "keyword":
             self.num_row += 1
-
-            start = self.createLabel()
-            leave = self.createLabel()
-
-            self.setValLabel(start)
-
             self.parse_token("(", "breacket_op")
             self.parse_bool_expr()
             self.parse_token(")", "breacket_op")
-
-            postfix_code.append(leave)
-            postfix_code.append(('JF', 'jf'))
-
             self.parse_token("{", "breacket_op")
             self.parse_statement_list()
             self.parse_token("}", "breacket_op")
-
-            postfix_code.append(('JMP', 'jump'))
-            self.setValLabel(leave)
 
             return True
         else: 
@@ -357,10 +344,6 @@ class Parser:
         _, lex, tok = self.get_sym()
 
         if lex == "print" and tok == "keyword":
-            postfix_code.append(("OUT", "print"))
-            if to_view:
-                self.configToPrint(lex, self.num_row)
-              
             self.num_row += 1
             self.parse_token("(", "breacket_op")
             self.parse_expression()
@@ -393,6 +376,7 @@ class Parser:
             else:
                 self.fail_parse("Невідповідність токенів", (num_line, lex, tok, ', or )', 'punct or breacket_op'))
                 return False
+
               #  break
         return True
 
@@ -403,10 +387,6 @@ class Parser:
         num_line, lex, tok = self.get_sym()
         if lex == "readline" and tok == "keyword":
             #print(" " * self.column + 'в рядку {0} - {1}'.format(lex, tok))
-            postfix_code.append(("IN", "readline"))
-            if to_view:
-                self.configToPrint(lex, self.num_row)
-            
             self.num_row += 1
             self.parse_token("(", "breacket_op")
 
@@ -417,7 +397,6 @@ class Parser:
             return True
         else:
             return False
-
 
     def get_const_type(self, literal):
         return table_of_const[literal][1]
@@ -456,7 +435,8 @@ class Parser:
             parsed_factor_token_left = "bool"
         exp_type = parsed_factor_token_left
         F = True
-
+        metPow = False
+        inCaseOfPow = None
         tempPowOpHolder = []
         while F:
             num_line, lex, tok = self.get_sym()
@@ -469,17 +449,17 @@ class Parser:
                     self.num_row -= 1
 
             if tok in "mult_op":
-                self.num_row += 1
-
-                for row in tempPowOpHolder:  # nothing to print if had no pows
-                  postfix_code.append(row[0], row[1])
-
-                  if to_view:
-                      self.configToPrint(row[0], row[2])
-                
-                tempPowOpHolder = []
-
+               
+                if metPow:
+                    for row in tempPowOpHolder:
+                        postfix_code.append((row[0], row[1]))
+                        if to_view:
+                            self.configToPrint(row[0], row[2])
+                    tempPowOpHolder = []
                 tempRow = self.num_row
+                inCaseOfPow = lex; 
+                self.num_row += 1
+                
                 _, parsed_factor_token_right = self.parse_factor()
                 if parsed_factor_token_right == "intnum":
                     parsed_factor_token_right = "int"
@@ -487,26 +467,30 @@ class Parser:
                     parsed_factor_token_right = "double"
                 elif parsed_factor_token_right == "boolval":
                     parsed_factor_token_right = "bool"
-                
-                postfix_code.append((lex, tok))
-                if to_view:
-                    self.configToPrint(lex, tempRow)
+                    ### додати умову якусь тіпа get_sym != ^
+                num_line, next_lex, tok = self.get_sym()
+                if next_lex != "^":
+                    postfix_code.append((lex, tok))
+                    if to_view:
+                        self.configToPrint(lex, tempRow)
+
 
                 exp_type = self.get_op_type(parsed_factor_token_left, lex, parsed_factor_token_right)
-
-            elif tok == 'pow_op':
+            elif lex == '^':
+                metPow = True
                 tempPowOpHolder.append((lex, tok, self.num_row))
-                self.num_row += 1
-                # print('+'+'\t'*6 + 'в рядку {0} - {1}'.format(_numLine, (lex, tok)))
-                self.parse_factor()
-
+                if inCaseOfPow is not None:
+                    tempPowOpHolder.append((inCaseOfPow, tok, self.num_row))
+                    self.num_row += 1
+                    self.parse_factor()
+                else:
+                    self.num_row += 1
+                    self.parse_factor()
+                    postfix_code.append(('^', 'power_op'))
+                    if to_view:
+                        self.configToPrint(lex, self.num_row)
             else:
                 F = False
-        
-        for row in tempPowOpHolder:  # nothing to print if had no pows
-            postfix_code.append((row[0], row[1]))
-            if to_view:
-                self.configToPrint(row[0], row[2])
 
         return [True, exp_type]
 
@@ -518,8 +502,11 @@ class Parser:
 
         if tok == "power_op" and lex == "^":
             self.num_row += 1
-            print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
+            #print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
             self.parse_factor()
+            postfix_code.append(('^', 'power_op'))
+            if to_view:
+                self.configToPrint(lex, self.num_row)
         else:
             self.fail_parse("Невiдповiднiсть у Power", (num_line, lex, tok, "^ Factor"))
 
