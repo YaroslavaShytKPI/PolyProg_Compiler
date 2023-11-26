@@ -96,7 +96,6 @@ class Parser:
 
     def parse_expression(self):
         self.column += 1
-        #print(" " * self.column + "parse_expression():")
         _, l_type = self.parse_term()
         if l_type == "intnum":
             l_type = "int"
@@ -108,9 +107,8 @@ class Parser:
 
         while F:
             num_line, lex, tok = self.get_sym()
-            
+
             if tok == "mult_op" and lex == "/":
-                # Перевірка ділення на нуль
                 self.num_row += 1
                 if self.get_sym()[2] == "intnum" and int(self.get_sym()[1]) == 0:
                     self.fail_parse("Ділення на нуль", (num_line))
@@ -120,21 +118,15 @@ class Parser:
             if tok in ("add_op", "power_op", "mult_op"):
                 temp_row = self.num_row
                 self.num_row += 1
-                #print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
                 _, r_type = self.parse_term()
-                #######################################
-                if lex == '+':
-                    postfix_code.append(('+', tok)) #306 line
-                    if to_view:
-                        self.configToPrint('+', temp_row)
-                if lex == '-':
-                    postfix_code.append(('-', tok))
-                    if to_view:
-                        self.configToPrint('-', temp_row)
-                ########################################
+
+                postfix_code.append((lex, tok))
+                if to_view:
+                    self.configToPrint(lex, temp_row)
+
                 result_type = self.get_op_type(l_type, lex, r_type)
 
-                if (result_type != "type_error"):
+                if result_type != "type_error":
                     if result_type == 'double' and (r_type == 'int' or l_type == 'int'):
                         l_type = result_type
                     else:
@@ -376,7 +368,6 @@ class Parser:
             result_type = 'void'
         else: 
             result_type = 'type_error'
-        
         return result_type
 
 
@@ -385,8 +376,8 @@ class Parser:
 
     def parse_term(self):
         self.column += 1
-        #print(" " * self.column + "parse_term():")
         _, parsed_factor_token_left = self.parse_factor()
+        exp_type = parsed_factor_token_left
         if parsed_factor_token_left == "intnum":
             parsed_factor_token_left = "int"
         elif parsed_factor_token_left == "doublenum":
@@ -396,13 +387,10 @@ class Parser:
         exp_type = parsed_factor_token_left
         F = True
 
-
-        temp_pow_holder = [] #????????????????
         while F:
             num_line, lex, tok = self.get_sym()
-            
+
             if tok == "mult_op" and lex == "/":
-                # Перевірка ділення на нуль
                 self.num_row += 1
                 if self.get_sym()[2] == "intnum" and int(self.get_sym()[1]) == 0:
                     self.fail_parse("Ділення на нуль", (num_line))
@@ -411,40 +399,24 @@ class Parser:
 
             if tok in "mult_op":
                 self.num_row += 1
-                #print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
-
-                for row in tempPowOpHolder:  # nothing to print if had no pows хз чи це треба взагалі
-                    postfix_code.append(row[0], row[1])
-                    if to_view:
-                        self.configToPrint(row[0], row[2])
-                    tempPowOpHolder = []
-                    tempRow = numRow
-
+                tempRow = self.num_row
                 _, parsed_factor_token_right = self.parse_factor()
-                postfix_code.append((lex, tok))
-                if to_view:
-                    self.configToPrint(lex, tempRow)
-
                 if parsed_factor_token_right == "intnum":
                     parsed_factor_token_right = "int"
                 elif parsed_factor_token_right == "doublenum":
                     parsed_factor_token_right = "double"
                 elif parsed_factor_token_right == "boolval":
                     parsed_factor_token_right = "bool"
-                if parsed_factor_token_right != parsed_factor_token_right:
-                    current_row_var_type = self.get_id_type_on_row(num_line)
-                    if current_row_var_type != "double":
-                        self.fail_parse("Невідповідність типів", (num_line, parsed_factor_token_left, parsed_factor_token_right))
-                    #exp_type = self.get_op_type(parsed_factor_token_left, lex, parsed_factor_token_right)
-                exp_type = self.get_op_type(parsed_factor_token_left, lex, parsed_factor_token_right)
-            if lex in ("true", "false"):
-                self.fail_parse("Невідповідність в BoolExpr",
-                                (num_line, lex, tok, "intnum, doublenum, id або (Expression)"))
+                postfix_code.append((lex, tok))
+                if to_view:
+                    self.configToPrint(lex, tempRow)
 
+                exp_type = self.get_op_type(parsed_factor_token_left, lex, parsed_factor_token_right)
             else:
                 F = False
-            
+
         return [True, exp_type]
+
     def parse_power(self):
         self.column += 1
         #print(" " * self.column + "parse_power():")
@@ -466,9 +438,11 @@ class Parser:
 
         #print(" " * self.column + "parseFactor(): рядок: {0} (lex, tok): {1}".format(num_line, (lex, tok)))
         if tok in ("intnum", "doublenum"):
+            # додаємо число у таблицю постфікс-коду
             postfix_code.append((lex, tok))
             if to_view:
                 self.configToPrint(lex, self.num_row)
+
             self.num_row += 1
             #print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
             return [True, tok]
@@ -481,10 +455,11 @@ class Parser:
             if self.is_var_init(lex) == False:
                 self.fail_parse("Використання невизначеної змінної", (num_line, lex))
 
+            # додаємо ідентифікатор тут, оскільки тут ми знаємо, що це не є розділ оголошення
             postfix_code.append((lex, tok))
             if to_view:
                 self.configToPrint(lex, self.num_row)
-            
+
             self.num_row += 1
             #print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
             return [True, self.get_var_type(lex)]
@@ -499,6 +474,10 @@ class Parser:
         elif lex == "-" and tok == "add_op":
             self.num_row += 1
             _, factor_type = self.parse_factor()
+            # трансляція унарного мінуса
+            postfix_code.append(('NEG', tok))
+            if to_view:
+                self.configToPrint('NEG', self.num_row)
             return [True, factor_type]
 
         elif lex == "^" and tok == "power_op":
