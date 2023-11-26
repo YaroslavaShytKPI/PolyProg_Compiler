@@ -3,6 +3,7 @@ from lexical_analyzer import lex, table_of_sym, table_of_const, F_success
 
 postfix_code = []
 to_view = True
+table_of_label = {}
 
 class Parser:
     num_row = 1
@@ -23,6 +24,21 @@ class Parser:
         # tpl = (lex,numRow,str(tableOfSymb[numRow]),str(postfixCode))
         print(stage.format(lex, numRow, str(
             table_of_sym[numRow]), str(postfix_code)))
+
+    def createLabel(self):
+        global table_of_label
+        nmb = len(table_of_label) + 1
+        lexeme = "m"+str(nmb)
+        table_of_label[lexeme] = 'value_undef'
+        tok = 'label'
+        return (lexeme, tok)
+
+
+    def setValLabel(self, lbl):
+        global table_of_label
+        lex, _tok = lbl
+        table_of_label[lex] = len(postfix_code)
+        return True
 
     def __new__(cls):
         if not hasattr(cls, 'instance'):
@@ -66,6 +82,7 @@ class Parser:
             return False
 
      # Assign = Ident ‘=’ Expression ‘;’
+    
     def parse_assign(self):
         self.column += 1
         #print(" " * self.column + "parse_assign():")
@@ -93,7 +110,6 @@ class Parser:
             self.fail_parse("Невідповідність типів", (num_line, l_type, r_type))
         self.table_of_vars[lex] = (self.table_of_vars[lex][0], self.table_of_vars[lex][1], 'assign')
         
-
     def parse_expression(self):
         self.column += 1
         _, l_type = self.parse_term()
@@ -138,7 +154,6 @@ class Parser:
 
         return [True, l_type]
 
-
     # ForStatement = for '(' Assign';' BoolExp';' Assign ')' '{' StatementList '}'
     def parse_for(self):
         self.column += 1
@@ -160,7 +175,6 @@ class Parser:
         else:
             return False
 
-
     # DoWhileStatement = do '{' StatementList '}' while '(' BoolExp ')'
     def parse_do_while(self):
         self.column += 1
@@ -181,7 +195,6 @@ class Parser:
         else: 
             return False
 
-
     # WhileStatement = while '(' BoolExp ')' '{' StatementList '}' 
     def parse_while(self):
         self.column += 1
@@ -201,7 +214,6 @@ class Parser:
         else: 
             return False
 
-
     # IfStatement = if '(' BoolExp ')' '{' StatementList '}'
     def parse_if(self):
         self.column += 1
@@ -214,7 +226,14 @@ class Parser:
             self.parse_bool_expr()
             self.parse_token(")", "breacket_op")
             self.parse_token("{", "breacket_op")
-            self.parse_statement_list()            
+
+            # створюємо мітку
+            m1 = self.createLabel()
+            postfix_code.append(m1) # трансляція
+            postfix_code.append(('JF', 'jf')) # додали m1 JF
+
+            self.parse_statement_list()       # трансляція
+
             self.parse_token("}", "breacket_op")
 
             _, lex, tok = self.get_sym()
@@ -222,7 +241,21 @@ class Parser:
             if lex == "else" and tok == "keyword":
                 self.parse_token("else", "keyword")
                 self.parse_token("{", "breacket_op")
-                self.parse_statement_list()
+
+                # створюємо мітку m2
+                m2 = self.createLabel()
+                postfix_code.append(m2)   # трансляція
+                postfix_code.append(('JMP', 'jump'))
+                self.setValLabel(m1)   # в таблиці міток
+                postfix_code.append(m1)
+                postfix_code.append((':', 'colon')) # додали m2 JMP m1 :
+
+                self.parse_statement_list()    # трансляція
+
+                self.setValLabel(m2)  # в табл.міток
+                postfix_code.append(m2) # трансляція
+                postfix_code.append((':', 'colon')) # додали m2 JMP m1 : 
+
                 self.parse_token("}", "breacket_op")
 
             return True
@@ -232,11 +265,10 @@ class Parser:
     def parse_bool_expr(self):
         self.parse_expression()
         num_line, lex, tok = self.get_sym()
-        valid_rel_ops = ['<', '>', '<=', '>=', '==', '!=']
-
+        temp_row = self.num_row
         if tok in ('rel_op'):
             self.num_row += 1
-
+            
             if lex in ('==', '!='):
                 self.parse_expression()
             else:
@@ -248,7 +280,9 @@ class Parser:
                 else:
                     num_line, lex, tok = self.get_sym()
                     self.fail_parse("Невідповідність в BoolExpr", (num_line, lex, tok, 'id'))
-
+            postfix_code.append((lex, tok))
+            if to_view:
+                self.configToPrint(lex, temp_row)
         elif tok in ("boolval"):
             self.num_row += 1
         else:
@@ -292,7 +326,6 @@ class Parser:
         else:
             return False
 
-
     def parse_id_list(self):
         self.column += 1
         #print(" " * self.column + "parse_id_list():")
@@ -321,7 +354,6 @@ class Parser:
               #  break
         return True
 
-
     # Input = readline '(' IdList ')'
     def parse_readline(self):
         self.column += 1
@@ -340,14 +372,9 @@ class Parser:
         else:
             return False
 
-
-   
-
-
     def get_const_type(self, literal):
         return table_of_const[literal][1]
     
-
     def get_op_type(self, l_type, op, r_type):
         # типи збiгаються?
         types_are_same = l_type == r_type
@@ -369,10 +396,6 @@ class Parser:
         else: 
             result_type = 'type_error'
         return result_type
-
-
-    
-
 
     def parse_term(self):
         self.column += 1
@@ -429,7 +452,6 @@ class Parser:
             self.parse_factor()
         else:
             self.fail_parse("Невiдповiднiсть у Power", (num_line, lex, tok, "^ Factor"))
-
 
     def parse_factor(self):
         self.column += 1
@@ -521,8 +543,6 @@ class Parser:
         verdad = prev_lex in ("==", "!=", "<", ">", "<=" ">=") or prev_row[1] == "="
         return prev_lex in ("==", "!=", "<", ">", "<=" ">=", "(") or prev_row[1] == "="
 
-
-
     def parse_token(self, lexeme, token):
         if self.num_row > len(table_of_sym):
             self.fail_parse("Неочікуваний кінець програми", (lexeme, token, self.num_row))
@@ -536,7 +556,6 @@ class Parser:
         else:
             self.fail_parse("Невідповідність токенів", (num_line, lex, tok, lexeme, token))
             return False
-
 
     def get_sym(self):
         if self.num_row > len(table_of_sym):
@@ -645,6 +664,7 @@ class Parser:
         return True
 
         # Statement = Assign | Inp | Out | ForStatement |DoWhileStatement| IfStatement
+    
     def parse_statement(self):
         self.column = 2
         #print(" " * self.column + "parse_statement():")
@@ -717,7 +737,6 @@ class Parser:
           self.table_of_vars[lex] = (indx, type, value, num_line)
       else: 
           self.fail_parse("Повторне оголошення змiнної", (num_line, lex))
-
 
     def parse_id_declaration_list(self, type):
         self.column += 1
