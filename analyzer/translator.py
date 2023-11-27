@@ -509,10 +509,14 @@ class Parser:
                 else:
                     self.num_row += 1
                     self.parse_factor()
-                    postfix_code.append(('^', 'power_op'))
-                    if to_view:
-                        self.configToPrint(lex, self.num_row)
+                    
+          
             else:
+                for row in tempPowOpHolder:
+                    postfix_code.append((row[0], row[1]))
+                    if to_view:
+                        self.configToPrint(row[0], row[2])
+                tempPowOpHolder = []
                 F = False
 
         return [True, exp_type]
