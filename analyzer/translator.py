@@ -229,12 +229,26 @@ class Parser:
 
         if lex == "while" and tok == "keyword":
             self.num_row += 1
+
+            start = self.createLabel()
+            leave = self.createLabel()
+
+            self.setValLabel(start)
+
             self.parse_token("(", "breacket_op")
             self.parse_bool_expr()
             self.parse_token(")", "breacket_op")
+
+            postfix_code.append(start)
+            postfix_code.append(('JF', 'jf'))
+
             self.parse_token("{", "breacket_op")
             self.parse_statement_list()
             self.parse_token("}", "breacket_op")
+
+            postfix_code.append(leave)
+            postfix_code.append(('JMP', 'jump'))
+            self.setValLabel(leave)
 
             return True
         else: 
@@ -339,9 +353,14 @@ class Parser:
 
     # Output = print '(' id ')'
     def parse_print(self):
+        _, lex, tok = self.get_sym()
+
+        postfix_code.append(("OUT", "print"))
+        if to_view:
+            self.configToPrint(lex, self.num_row)
+        
         self.column += 1
         #print(" " * self.column + "parse_print():")
-        _, lex, tok = self.get_sym()
 
         if lex == "print" and tok == "keyword":
             self.num_row += 1
@@ -386,6 +405,10 @@ class Parser:
         #print(" " * self.column + "parse_readline():")
         num_line, lex, tok = self.get_sym()
         if lex == "readline" and tok == "keyword":
+            postfix_code.append(("IN", "readline"))
+            if to_view:
+                self.configToPrint(lex, self.num_row)
+            
             #print(" " * self.column + 'в рядку {0} - {1}'.format(lex, tok))
             self.num_row += 1
             self.parse_token("(", "breacket_op")
