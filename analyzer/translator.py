@@ -4,16 +4,40 @@ from lexical_analyzer import lex, table_of_sym, table_of_const, F_success
 postfix_code = []
 to_view = True
 table_of_label = {}
+table_of_vars = {}
 
 class Parser:
     num_row = 1
     column = 1
-    table_of_vars = {}
 
     # якщо лексичний розбір завершено успішно, запускаємо постфікс-транслятор
-    def postfix_translator(self):
-        if(True, 'Lexer') == F_success:
-            return self.parse_main()
+    # def postfix_translator(self, file_name):
+    #     print('compileToPostfix: lexer Start Up\n')
+    #     FSuccess = self.get_sym(file_name)
+    #     print('compileToPostfix: lexer-FSuccess ={0}'.format(FSuccess))
+    #     # чи був успiшним лексичний розбiр
+    #     if (True,'Lexer') == FSuccess:
+    #         print('-'*55)
+    #         print('compileToPostfix: Start Up compiler = parser + codeGenerator\n')
+    #         FSuccess = (False,'codeGeneration')
+    #         FSuccess = self.parse_main()
+    #         if FSuccess == (True,'codeGeneration'):
+    #             serv()
+    #             #savePostfixCode(fileName)
+    #     return FSuccess
+
+
+    def postfix_code_gen(self, case, to_tran):
+        if case == 'l-val':
+            lex, tok = to_tran
+            postfix_code.append((lex, 'l-val'))
+        elif case == 'r-val':
+            lex, tok = to_tran
+            postfix_code.append((lex, 'r-val'))
+        else:
+            lex, tok = to_tran
+            postfix_code.append((lex, tok))
+
         
     # виводить у консоль інформацію про перебіг трансляції
     def configToPrint(self, lex, numRow):
@@ -27,10 +51,17 @@ class Parser:
 
     def createLabel(self):
         global table_of_label
-        nmb = len(table_of_label) + 1
-        lexeme = "m"+str(nmb)
-        table_of_label[lexeme] = 'value_undef'
-        tok = 'label'
+        lexeme = "m"+str(len(table_of_label) + 1)
+        val = table_of_label.get(lexeme)
+
+        if val is None:
+            table_of_label[lexeme] = 'val_undef'
+            tok = 'label'
+        else:
+            tok = 'Конфлiкт мiток'
+            print(tok)
+            exit(1003)
+        
         return (lexeme, tok)
 
 
@@ -58,6 +89,7 @@ class Parser:
             
             # повідомляємо про те, що постфікс-транслятор спрацював успішно
             print('Translator: Переклад у ПОЛІЗ та синтаксичний аналіз завершились успішно')
+            # for (int i = 0; i < self.table_of_)
             # print([row[0] for row in postfixCode])
             FSuccess = (True, 'Translator')
             return FSuccess   
@@ -87,7 +119,7 @@ class Parser:
         self.column += 1
         #print(" " * self.column + "parse_assign():")
         num_line, lex, tok = self.get_sym()
-        self.num_row += 1
+
         l_type = self.get_var_type(lex)
         if l_type == "intnum":
             l_type = "int"
@@ -96,23 +128,29 @@ class Parser:
         elif l_type == "boolval":
             l_type = "bool"
 
+        self.postfix_code_gen('l-val', (lex, tok))
+        if to_view: 
+            self.configToPrint(lex, self.num_row)
+        
+        self.num_row += 1
+
         #print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
         self.parse_token("=", "assign_op")
 
         temp_row = self.num_row
         _, r_type = self.parse_expression()     # трансляція, нічого не робимо
-        postfix_code.append(('=', 'assign_op')) # бінарний оператор '=' додається після своїх операндів
+        self.postfix_code_gen('=', ('=', 'assign_op')) # бінарний оператор '=' додається після своїх операндів
         if to_view:                             # друкуємо крок
             self.configToPrint('=', temp_row)
 
         res_type = self.get_op_type(l_type, "=", r_type)     
         if res_type == "type_error":
             self.fail_parse("Невідповідність типів", (num_line, l_type, r_type))
-        self.table_of_vars[lex] = (self.table_of_vars[lex][0], self.table_of_vars[lex][1], 'assign')
+        table_of_vars[lex] = (table_of_vars[lex][0], table_of_vars[lex][1], 'assign')
         
-    def parse_expression(self):
+    def parse_expression(self, is_print = False):
         self.column += 1
-        _, l_type = self.parse_term()
+        _, l_type = self.parse_term(is_print)
         if l_type == "intnum":
             l_type = "int"
         elif l_type == "doublenum":
@@ -157,46 +195,54 @@ class Parser:
     # ForStatement = for '(' Assign';' BoolExp';' Assign ')' '{' StatementList '}'
     def parse_for(self):
         self.column += 1
-        #print(" " * self.column + "parse_for():")
         _, lex, tok = self.get_sym()
         if lex == "for" and tok == "keyword":
             self.num_row += 1
 
-            start = self.createLabel()
-            action = self.createLabel()
-            increment = self.createLabel()
-            leave = self.createLabel()
+            # Створення мітки для початку циклу
+            start_label = self.createLabel()
+            postfix_code.append(start_label)
 
             self.parse_token("(", "breacket_op")
             self.parse_assign()
 
-            self.setValLabel(start)
+            # Створення мітки для перевірки умови в циклі
+            check_label = self.createLabel()
+            postfix_code.append(check_label)
+            self.setValLabel(check_label)
+            postfix_code.append(('JF', 'jf'))
 
             self.parse_token(";", "punct")
             self.parse_bool_expr()
             self.parse_token(";", "punct")
 
-            postfix_code.append(leave)
-            postfix_code.append(('JF', 'jf'))
-            postfix_code.append(action)
+            # Створення мітки для збільшення/зменшення лічильника циклу
+            increment_label = self.createLabel()
+            postfix_code.append(increment_label)
+            self.setValLabel(increment_label)
             postfix_code.append(('JMP', 'jump'))
-            self.setValLabel(increment)
 
             self.parse_assign()
             self.parse_token(")", "breacket_op")
 
-            postfix_code.append(start)
-            postfix_code.append(('JMP', 'jump'))
-            self.setValLabel(action)
-
             self.parse_token("{", "breacket_op")
             self.parse_statement_list()
 
-            postfix_code.append(increment)
+            # Створення мітки для перевірки умови в кінці циклу
             postfix_code.append(('JMP', 'jump'))
-            self.setValLabel(leave)
+            end_label = self.createLabel()
+            postfix_code.append(end_label)
+            self.setValLabel(end_label)
+            postfix_code.append((':', 'colon'))
 
             self.parse_token("}", "breacket_op")
+
+            # Додавання мітки для перевірки умови в кінці циклу
+            postfix_code.append(('JMP', 'jump'))
+            postfix_code.append(start_label)
+            self.setValLabel(start_label)
+            postfix_code.append((':', 'colon'))
+
             return True
         else:
             return False
@@ -204,18 +250,37 @@ class Parser:
     # DoWhileStatement = do '{' StatementList '}' while '(' BoolExp ')'
     def parse_do_while(self):
         self.column += 1
-        #print(" " * self.column+ "parse_do_while():")
         _, lex, tok = self.get_sym()
 
         if lex == "do" and tok == "keyword":
             self.num_row += 1
+
+            # Створення мітки для початку циклу
+            start_label = self.createLabel()
+            postfix_code.append(start_label)
+
             self.parse_token("{", "breacket_op")
             self.parse_statement_list()
             self.parse_token("}", "breacket_op")
+
             self.parse_token("while", "keyword")
+
+            # Створення мітки для перевірки умови в кінці циклу
+            check_label = self.createLabel()
+            postfix_code.append(check_label)
+            self.setValLabel(check_label)
+
             self.parse_token("(", "breacket_op")
             self.parse_bool_expr()
             self.parse_token(")", "breacket_op")
+
+            # Створення команди JMP для переходу на початок циклу у випадку виконання умови
+            postfix_code.append(('JF', 'jf'))
+            postfix_code.append(start_label)
+
+            # Встановлення значень міток у відповідних місцях коду
+            self.setValLabel(start_label)
+            postfix_code.append((':', 'colon'))
 
             return True
         else: 
@@ -224,31 +289,39 @@ class Parser:
     # WhileStatement = while '(' BoolExp ')' '{' StatementList '}' 
     def parse_while(self):
         self.column += 1
-        #print(" " * self.column + "parse_while():")
         _, lex, tok = self.get_sym()
 
         if lex == "while" and tok == "keyword":
             self.num_row += 1
 
-            start = self.createLabel()
-            leave = self.createLabel()
-
-            self.setValLabel(start)
+            # Створення мітки для перевірки умови в циклі
+            check_label = self.createLabel()
+            postfix_code.append(check_label)
 
             self.parse_token("(", "breacket_op")
             self.parse_bool_expr()
             self.parse_token(")", "breacket_op")
 
-            postfix_code.append(start)
+            # Створення мітки для початку циклу
+            start_label = self.createLabel()
             postfix_code.append(('JF', 'jf'))
+            postfix_code.append(start_label)
 
             self.parse_token("{", "breacket_op")
             self.parse_statement_list()
+
+            # Створення мітки для перевірки умови в кінці циклу
+            postfix_code.append(('JMP', 'jump'))
+            postfix_code.append(check_label)
+            self.setValLabel(check_label)
+            postfix_code.append((':', 'colon'))
+
             self.parse_token("}", "breacket_op")
 
-            postfix_code.append(leave)
-            postfix_code.append(('JMP', 'jump'))
-            self.setValLabel(leave)
+            # Додавання мітки для перевірки умови в кінці циклу
+            postfix_code.append(start_label)
+            self.setValLabel(start_label)
+            postfix_code.append((':', 'colon'))
 
             return True
         else: 
@@ -286,14 +359,14 @@ class Parser:
                 m2 = self.createLabel()
                 postfix_code.append(m2)   # трансляція
                 postfix_code.append(('JMP', 'jump'))
-                self.setValLabel(m1)   # в таблиці міток
                 postfix_code.append(m1)
+                self.setValLabel(m1)   # в таблиці міток
                 postfix_code.append((':', 'colon')) # додали m2 JMP m1 :
 
                 self.parse_statement_list()    # трансляція
 
-                self.setValLabel(m2)  # в табл.міток
                 postfix_code.append(m2) # трансляція
+                self.setValLabel(m2)  # в табл.міток
                 postfix_code.append((':', 'colon')) # додали m2 JMP m1 : 
 
                 self.parse_token("}", "breacket_op")
@@ -354,10 +427,6 @@ class Parser:
     # Output = print '(' id ')'
     def parse_print(self):
         _, lex, tok = self.get_sym()
-
-        postfix_code.append(("OUT", "print"))
-        if to_view:
-            self.configToPrint(lex, self.num_row)
         
         self.column += 1
         #print(" " * self.column + "parse_print():")
@@ -365,13 +434,24 @@ class Parser:
         if lex == "print" and tok == "keyword":
             self.num_row += 1
             self.parse_token("(", "breacket_op")
-            self.parse_expression()
+            self.parse_expression(True)
+            postfix_code.append(('OUT', 'print'))
+
+            if to_view:
+              self.configToPrint(lex, self.num_row)
+            
             self.parse_token(")", "breacket_op")
             return True
         else:
             return False
 
     def parse_id_list(self):
+        num_line, lex, tok = self.get_sym()
+        postfix_code.append((lex, tok))
+
+        if to_view:
+            self.configToPrint(lex, self.num_row)
+        
         self.column += 1
         #print(" " * self.column + "parse_id_list():")
 
@@ -382,15 +462,31 @@ class Parser:
             num_line, lex, tok = self.get_sym()
 
             if lex == ",":
+                postfix_code.append(("IN", "readline"))
+
+                if to_view:
+                    self.configToPrint(lex, self.num_row)
+                
                 #print(" " * self.column + 'в рядку {0} - {1}'.format(num_line, (lex, tok)))
                 self.parse_token(",", "punct")
                 num_line, lex, tok = self.get_sym()
+
+                postfix_code.append((lex, tok))
+
+                if to_view:
+                    self.configToPrint(lex, self.num_row)
+                
                 if lex == ")":
                     self.fail_parse("Невідповідність інструкцій", (num_line, lex, tok, 'id'))
 
                 if not self.parse_id():
                     self.fail_parse("Невідповідність інструкцій", (num_line, lex, tok, 'id'))
             elif lex == ")":
+                postfix_code.append(("IN", "readline"))
+
+                if to_view:
+                    self.configToPrint(lex, self.num_row)
+                
                 break
             else:
                 self.fail_parse("Невідповідність токенів", (num_line, lex, tok, ', or )', 'punct or breacket_op'))
@@ -405,10 +501,6 @@ class Parser:
         #print(" " * self.column + "parse_readline():")
         num_line, lex, tok = self.get_sym()
         if lex == "readline" and tok == "keyword":
-            postfix_code.append(("IN", "readline"))
-            if to_view:
-                self.configToPrint(lex, self.num_row)
-            
             #print(" " * self.column + 'в рядку {0} - {1}'.format(lex, tok))
             self.num_row += 1
             self.parse_token("(", "breacket_op")
@@ -416,6 +508,7 @@ class Parser:
             if not self.parse_id_list():
                 _, lex, tok = self.get_sym()
                 self.fail_parse("Невідповідність інструкцій", (num_line, lex, tok, 'id'))
+                      
             self.parse_token(")", "breacket_op")
             return True
         else:
@@ -446,9 +539,9 @@ class Parser:
             result_type = 'type_error'
         return result_type
 
-    def parse_term(self):
+    def parse_term(self, is_print = False):
         self.column += 1
-        _, parsed_factor_token_left = self.parse_factor()
+        _, parsed_factor_token_left = self.parse_factor(is_print)
         exp_type = parsed_factor_token_left
         if parsed_factor_token_left == "intnum":
             parsed_factor_token_left = "int"
@@ -537,7 +630,7 @@ class Parser:
         else:
             self.fail_parse("Невiдповiднiсть у Power", (num_line, lex, tok, "^ Factor"))
 
-    def parse_factor(self):
+    def parse_factor(self, is_print = False):
         self.column += 1
         #print(" " * self.column + "parse_factor():")
         num_line, lex, tok = self.get_sym()
@@ -545,7 +638,7 @@ class Parser:
         #print(" " * self.column + "parseFactor(): рядок: {0} (lex, tok): {1}".format(num_line, (lex, tok)))
         if tok in ("intnum", "doublenum"):
             # додаємо число у таблицю постфікс-коду
-            postfix_code.append((lex, tok))
+            self.postfix_code_gen('const', (lex, tok))
             if to_view:
                 self.configToPrint(lex, self.num_row)
 
@@ -562,9 +655,16 @@ class Parser:
                 self.fail_parse("Використання невизначеної змінної", (num_line, lex))
 
             # додаємо ідентифікатор тут, оскільки тут ми знаємо, що це не є розділ оголошення
-            postfix_code.append((lex, tok))
-            if to_view:
-                self.configToPrint(lex, self.num_row)
+            if (is_print):
+                self.postfix_code_gen('id', (lex, 'id'))
+
+                if to_view:
+                    self.configToPrint(lex, self.num_row)
+            else:
+                self.postfix_code_gen('r-val', (lex, 'r-val'))
+
+                if to_view:
+                    self.configToPrint(lex, self.num_row)
 
             self.num_row += 1
             #print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
@@ -726,13 +826,13 @@ class Parser:
 
     def get_var_type(self, id):
         try:
-            return self.table_of_vars[id][1]
+            return table_of_vars[id][1]
         except KeyError:
             return "undeclared_variable"
 
     def is_var_init(self, id):
         try:
-            if self.table_of_vars[id][2] == "assign":
+            if table_of_vars[id][2] == "assign":
                 return True
             else:
                 return False
@@ -758,12 +858,12 @@ class Parser:
             # self.is_declared_var(num_line, lex)
             if self.get_var_type(lex) == "undeclared_variable":
                 self.fail_parse("Використання неоголошеної змінної", (num_line, lex))
-            else:
-                if self.get_var_type(lex) in ('int', 'double', 'bool'):
-                    # додаємо ідентифікатор до постфікс-коду та друкуємо крок
-                    postfix_code.append((lex, tok))
-                    if(to_view):
-                        self.configToPrint(lex, self.num_row)
+            # else:
+            #     if self.get_var_type(lex) in ('int', 'double', 'bool'):
+            #         # додаємо ідентифікатор до постфікс-коду та друкуємо крок
+            #         postfix_code.append((lex, tok))
+            #         if(to_view):
+            #             self.configToPrint(lex, self.num_row)                         !!!!!!!!!!!!!!!!!!!!
             self.parse_assign()
             self.parse_token(";", "punct")
             return True
@@ -814,17 +914,17 @@ class Parser:
             return False
         
     def proc_table_of_var(self, num_line, lex, type, value):
-      indx = self.table_of_vars.get(lex)
+      indx = table_of_vars.get(lex)
 
       if indx is None:
-          indx = len(self.table_of_vars) + 1
-          self.table_of_vars[lex] = (indx, type, value, num_line)
+          indx = len(table_of_vars) + 1
+          table_of_vars[lex] = (indx, type, value, num_line)
       else: 
           self.fail_parse("Повторне оголошення змiнної", (num_line, lex))
 
     def parse_id_declaration_list(self, type):
         self.column += 1
-        print(" " * self.column + "parse_id_declaration_list():")
+        #print(" " * self.column + "parse_id_declaration_list():")
 
         num_line, lex, tok = self.get_sym()
         self.proc_table_of_var(num_line, lex, type, "undefined")
@@ -875,4 +975,27 @@ lex()
 print('-' * 30)
 print('tableOfSymb:{0}'.format(table_of_sym))
 print('-' * 30)
+
 parser = Parser().parse_main()
+
+# parser = Parser().postfix_translator('test1.pol')
+
+print('-' * 15)
+print(' Таблиця міток\n\nLabel\tValue')
+for label, value in table_of_label.items():
+    print('{0}\t{1}'.format(label, value))
+print('-' * 15)
+
+print('-' * 35)
+print(' Таблиця ідентифікаторів\n\nIndex\tIdent\tType\tValue')
+for ident, info in table_of_vars.items():
+    print('{0}\t{1}\t{2}\t{3}'.format(info[0], ident, info[1], info[2]))
+print('-' * 35)
+
+print('-' * 35)
+print(' Код програми у постфiкснiй формi (ПОЛIЗ):\n\n№\tValue')
+count = 0
+for value in postfix_code:
+    count += 1
+    print('{0}\t{1}'.format(count, postfix_code[count - 1]))
+print('-' * 35)

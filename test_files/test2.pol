@@ -1,14 +1,43 @@
-main() {
-  double x1 = 2.5;
+main {
   int a;
+  int b;
+  int c;
+  int d;
+  int s;
 
-  if (x1 < 5) {
-    print(x1);
-  } else {
-    print(x1 + 4);
-  }
+  a = 1;
+  b = 2;
+  c = 3;
+  d = 4;
+  s = 5;
 
-  for (let i = 0; i < 10; i = i - 8) {
-    readline(a);
-  }
+  //if (a + b < c) {
+  //  if (a == b) {
+  //    s = 5;
+  //  } else {
+  //    d = 500;
+  //  }
+  //} else {
+  //  d = 100;
+  //}
+
+  //while (a + b > c) {
+  //  s = 50;
+  //
+  //  while(a == b) {
+  //    s = 100;
+  //  }
+  //}
+
+  //do {
+  //  s = 50;
+  //} while(a > b + c)
+
+  //for (a = 0; a < b + c; a = a + d) {
+  //  s = 6;
+  //}
+
+  //print(a);
+  //readline(b);
+  //readline(c, d, s);
 }

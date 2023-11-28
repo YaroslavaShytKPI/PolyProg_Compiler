@@ -24,7 +24,7 @@ main{
 
   int x;
   //readline(x);
-  //x = 3;
+  x = 3;
 
   // ПОЛІЗ  x 2 - 1 + =
   // x = -2 + 1;
@@ -57,9 +57,9 @@ main{
   //  y = y + 4.4;
   //}
 
-  //if (x + 2 > 3){
-  //  print(x);
-  //} else{
-  //  print(2);
-  //}
+  if (x + 2 > 3){
+    print(x);
+  } else{
+    print(2);
+  }
 }
