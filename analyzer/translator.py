@@ -1,5 +1,7 @@
 from parser import Parser
 from lexical_analyzer import lex, table_of_sym, table_of_const, F_success
+from print_func import *
+from save_in_postfix_file import save_data_to_file
 
 postfix_code = []
 to_view = True
@@ -586,7 +588,7 @@ class Parser:
                     ### додати умову якусь тіпа get_sym != ^
                 num_line, next_lex, tok = self.get_sym()
                 if next_lex != "^":
-                    postfix_code.append((lex, tok))
+                    postfix_code.append((lex, tok[:-3]))
                     if to_view:
                         self.configToPrint(lex, tempRow)
 
@@ -638,7 +640,7 @@ class Parser:
         #print(" " * self.column + "parseFactor(): рядок: {0} (lex, tok): {1}".format(num_line, (lex, tok)))
         if tok in ("intnum", "doublenum"):
             # додаємо число у таблицю постфікс-коду
-            self.postfix_code_gen('const', (lex, tok))
+            self.postfix_code_gen('const', (lex, tok[:-3]))
             if to_view:
                 self.configToPrint(lex, self.num_row)
 
@@ -977,25 +979,13 @@ print('tableOfSymb:{0}'.format(table_of_sym))
 print('-' * 30)
 
 parser = Parser().parse_main()
+if parser == (True, 'Translator'):
+    #print_res(table_of_label=table_of_label, table_of_vars=table_of_vars, postfix_code=postfix_code)
+    #print(table_of_vars)
+    #print(table_of_label)
+    #print(table_of_const)
+    #print(postfix_code)
+    save_data_to_file(table_of_vars, table_of_label, table_of_const,  postfix_code, 'test1')
 
 # parser = Parser().postfix_translator('test1.pol')
 
-print('-' * 15)
-print(' Таблиця міток\n\nLabel\tValue')
-for label, value in table_of_label.items():
-    print('{0}\t{1}'.format(label, value))
-print('-' * 15)
-
-print('-' * 35)
-print(' Таблиця ідентифікаторів\n\nIndex\tIdent\tType\tValue')
-for ident, info in table_of_vars.items():
-    print('{0}\t{1}\t{2}\t{3}'.format(info[0], ident, info[1], info[2]))
-print('-' * 35)
-
-print('-' * 35)
-print(' Код програми у постфiкснiй формi (ПОЛIЗ):\n\n№\tValue')
-count = 0
-for value in postfix_code:
-    count += 1
-    print('{0}\t{1}'.format(count, postfix_code[count - 1]))
-print('-' * 35)
