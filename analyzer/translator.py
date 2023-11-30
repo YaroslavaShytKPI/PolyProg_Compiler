@@ -13,20 +13,20 @@ class Parser:
     column = 1
 
     # якщо лексичний розбір завершено успішно, запускаємо постфікс-транслятор
-    # def postfix_translator(self, file_name):
-    #     print('compileToPostfix: lexer Start Up\n')
-    #     FSuccess = self.get_sym(file_name)
-    #     print('compileToPostfix: lexer-FSuccess ={0}'.format(FSuccess))
-    #     # чи був успiшним лексичний розбiр
-    #     if (True,'Lexer') == FSuccess:
-    #         print('-'*55)
-    #         print('compileToPostfix: Start Up compiler = parser + codeGenerator\n')
-    #         FSuccess = (False,'codeGeneration')
-    #         FSuccess = self.parse_main()
-    #         if FSuccess == (True,'codeGeneration'):
-    #             serv()
-    #             #savePostfixCode(fileName)
-    #     return FSuccess
+    def postfix_translator(self, file_name):
+         print('\ncompileToPostfix: lexer Start Up\n')
+         FSuccess = lex()
+         print('compileToPostfix: lexer-FSuccess ={0}'.format(FSuccess))
+         # чи був успiшним лексичний розбiр
+         if (True,'Lexer') == FSuccess:
+             print('-'*55)
+             print('compileToPostfix: Start Up compiler = parser + codeGenerator\n\n\n')
+             FSuccess = (False,'Translator')
+             FSuccess = self.parse_main()
+             if FSuccess == (True, 'Translator'):
+                 print_res(table_of_label=table_of_label, table_of_vars=table_of_vars, postfix_code=postfix_code)
+                 save_data_to_file(table_of_vars, table_of_label, table_of_const,  postfix_code, file_name.split(".")[0])
+         return FSuccess
 
 
     def postfix_code_gen(self, case, to_tran):
@@ -90,7 +90,7 @@ class Parser:
             #print(self.table_of_vars)
             
             # повідомляємо про те, що постфікс-транслятор спрацював успішно
-            print('Translator: Переклад у ПОЛІЗ та синтаксичний аналіз завершились успішно')
+            print('Translator: Переклад у ПОЛІЗ та синтаксичний аналіз завершились успішно\n\n\n')
             # for (int i = 0; i < self.table_of_)
             # print([row[0] for row in postfixCode])
             FSuccess = (True, 'Translator')
@@ -398,7 +398,7 @@ class Parser:
             postfix_code.append((lex, tok))
             if to_view:
                 self.configToPrint(lex, temp_row)
-        elif tok in ("boolval"):
+        elif tok in ("boolval"):            
             self.num_row += 1
         else:
             self.fail_parse("Невідповідність в BoolExpr", (num_line, lex, tok, 'rel_op'))
@@ -695,7 +695,11 @@ class Parser:
 
         elif lex == "true" or lex == "false":
             # Перевірка контексту для правильного використання true та false
-            if self.check_bool_context():
+            if self.check_bool_context():                
+                postfix_code.append((lex, 'bool'))
+                if to_view:
+                    self.configToPrint(lex, self.num_row)
+                
                 self.num_row += 1
                 num_line, lex, tok = self.get_sym()
                 if tok in ("add_op", "mult_op", "power_op"):
@@ -973,19 +977,17 @@ class Parser:
         else:
             False
 
-lex()
-print('-' * 30)
-print('tableOfSymb:{0}'.format(table_of_sym))
-print('-' * 30)
+#lex()
+# print('-' * 30)
+# print('tableOfSymb:{0}'.format(table_of_sym))
+# print('-' * 30)
 
-parser = Parser().parse_main()
-if parser == (True, 'Translator'):
+parser = Parser().postfix_translator('test1.pol')
+# parser = Parser().parse_main()
+#if parser == (True, 'Translator'):
     #print_res(table_of_label=table_of_label, table_of_vars=table_of_vars, postfix_code=postfix_code)
-    #print(table_of_vars)
-    #print(table_of_label)
-    #print(table_of_const)
-    #print(postfix_code)
-    save_data_to_file(table_of_vars, table_of_label, table_of_const,  postfix_code, 'test1')
-
-# parser = Parser().postfix_translator('test1.pol')
-
+    # print(table_of_vars)
+    # print(table_of_label)
+    # print(table_of_const)
+    # print(postfix_code)
+    #save_data_to_file(table_of_vars, table_of_label, table_of_const,  postfix_code, 'test1')

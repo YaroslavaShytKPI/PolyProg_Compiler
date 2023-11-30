@@ -1,0 +1,19 @@
+.target: Postfix Machine
+.version: 0.1
+
+.vars(
+   y     int
+)
+
+.labels(
+
+)
+
+.constants(
+
+)
+
+.code(
+   y      id
+   IN     readline
+)

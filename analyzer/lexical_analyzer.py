@@ -7,7 +7,7 @@ table_of_sym = {}    # таблиця символів програми (таб�
 
 state = init_state   # поточний стан
 
-
+global source_code
 f = open('test_files/test1.pol', 'r')  # зчитування файлу програми мовою PolyProg   f = open('../test_files/test.pol', 'r')
 source_code = f.read()
 f.close()
@@ -25,7 +25,7 @@ lexeme = ''                      # ще не починали розпізнав
 def lex():
     global state, num_line, char, lexeme, num_char, F_success
     try:
-        print(f"L№  lex        token       id ")
+        #print(f"L№  lex        token       id ")
         while num_char < len_code:
             char = next_char()
             class_ch = class_of_char(char)
@@ -36,11 +36,14 @@ def lex():
                 lexeme = ''
             else:
                 lexeme += char
-        print('-' * 30)
-        print('Lexer: Лексичний аналіз завершено успішно')
+        #print('-' * 30)
+        #print('Lexer: Лексичний аналіз завершено успішно\n\n\n')
+
+        return (True,'Lexer')
+
     except SystemExit as e:
         F_success = (False, 'Lexer')
-        print('-' * 30)
+        #print('-' * 30)
         print('Lexer: Аварійне завершення програми з кодом {0}'.format(e))
 
 
@@ -99,13 +102,16 @@ def processing():
         token = get_token(state, lexeme)
 
         if token != 'keyword':
+            if lexeme in ('true', 'false'):
+              token = 'boolval'
+            
             index = index_id_const(state, lexeme)
-            print('-' * 30)
-            print(f"{num_line:<3d} {lexeme:<10s} {token:<10s} {index}")
+            #print('-' * 30)
+            #print(f"{num_line:<3d} {lexeme:<10s} {token:<10s} {index}")
             table_of_sym[len(table_of_sym) + 1] = (num_line, lexeme, token, index)
         else:
-            print('-' * 30)
-            print(f"{num_line:<3d} {lexeme:<10s} {token:<10s}")
+            #print('-' * 30)
+            #print(f"{num_line:<3d} {lexeme:<10s} {token:<10s}")
             table_of_sym[len(table_of_sym) + 1] = (num_line, lexeme, token, '')
 
         lexeme = ''
@@ -115,8 +121,8 @@ def processing():
     if state in (14, 8, 11, 13, 16):
         lexeme += char
         token = get_token(state, lexeme)
-        print('-' * 30)
-        print('{0:<3d} {1:<10s} {2:<10s} '.format(num_line, lexeme, token))
+        #print('-' * 30)
+        #print('{0:<3d} {1:<10s} {2:<10s} '.format(num_line, lexeme, token))
         table_of_sym[len(table_of_sym) + 1] = (num_line, lexeme, token, '')
         lexeme = ''
         state = init_state
@@ -136,13 +142,13 @@ def get_token(state, lexeme):
 # визначення індексу лексеми
 def index_id_const(state, lexeme):
     indx = 0
-    if state == 2:
+    if state == 2 and lexeme != 'true' and lexeme != 'false':
         if lexeme in table_of_id:
             indx = table_of_id[lexeme]
         else:
             indx = len(table_of_id) + 1
             table_of_id[lexeme] = indx
-    if state in (4, 6):
+    if state in (4, 6) and lexeme != 'true' and lexeme != 'false':
         if lexeme in table_of_const:
             if isinstance(table_of_const[lexeme], tuple):
                 indx = table_of_const[lexeme][1]
@@ -151,6 +157,15 @@ def index_id_const(state, lexeme):
         else:
             indx = len(table_of_const) + 1
             table_of_const[lexeme] = (tok_state_table[state], indx)
+    if state == 2 and (lexeme == 'true' or lexeme == 'false'):
+        if lexeme in table_of_const:
+            if isinstance(table_of_const[lexeme], tuple):
+                indx = table_of_const[lexeme][1]
+            else:
+                indx = table_of_const[lexeme]
+        else:
+            indx = len(table_of_const) + 1
+            table_of_const[lexeme] = ('boolval', indx)
     return indx
 
 
@@ -177,7 +192,7 @@ def fail():
 
 
 # запуск лексичного аналізатора
-# lex()
+#lex()
 
 # # Таблиці: розбору, ідентифікаторів та констант
 # print('-' * 50)

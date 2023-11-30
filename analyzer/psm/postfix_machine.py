@@ -1,4 +1,3 @@
-import re
 from stack import Stack
 # from parsePostfixProgram import getValue, f2i #loadPostfixFile
 
@@ -12,7 +11,7 @@ class PSM():             # Postfix Stack Machine
     self.numLine = 0
     self.fileName = ""
     self.file = ""
-    self.slt      = ""
+    self.slt = ""
     self.headSection = {"VarDecl":".vars(", "LblDecl":".labels(", "ConstDecl":".constants(", "Code":".code("}
     self.errMsg = {1:"неочікуваний заголовок", 2:"тут очікувався хоч один порожній рядок", 3:"тут очікувався заголовок секції", 4:"очікувалось два елемента в рядку", 8:"неініційована змінна" }
     self.stack = Stack()
@@ -68,7 +67,7 @@ class PSM():             # Postfix Stack Machine
     self.numLine += 1
     # один порожній рядок обов'язковий 
     if s != "": 
-      raise PMExcept(2)
+      raise PSMExcept(2)
     # інші (можливі) порожні рядки та заголовок секції
     F = True
     while F:
@@ -138,7 +137,7 @@ class PSM():             # Postfix Stack Machine
       while self.numInstr < self.maxNumbInstr:
         self.stack.print()
         lex,tok = self.postfixCode[self.numInstr]
-        if tok in ('int','double','l-val','r-val','label','bool'):
+        if tok in ('int','double','l-val','r-val','label','bool', 'id'):
           self.stack.push((lex,tok))
           self.numInstr = self.numInstr +1
         elif tok in ('jump','jf','colon'):
@@ -147,6 +146,10 @@ class PSM():             # Postfix Stack Machine
           id, _ = self.stack.pop()
           self.numInstr = self.numInstr +1
           print(f'-------------- OUT: {id}={self.tableOfId[id][2]}')
+        elif tok == 'readline':
+          id, _ = self.stack.pop()
+          self.numInstr = self.numInstr +1
+          print(f'-------------- IN: {id}={self.tableOfId[id][2]}')
         else: 
           print(f'-=-=-=========({lex},{tok})  numInstr={self.numInstr}')
           self.doIt(lex,tok)
@@ -163,7 +166,7 @@ class PSM():             # Postfix Stack Machine
       lexLbl, _ = self.stack.pop()                 # зняти з вершини стека мітку
       self.numInstr = int(self.tableOfLabel[lexLbl])    # номер наступної інструкції = значення мітки
     elif tok =='colon':
-      _, _  = self.stack.pop()                       # зняти з вершини стека 
+      _  = self.stack.pop()                       # зняти з вершини стека 
       self.numInstr = self.numInstr +1          # непотрібну нам мітку
     elif tok =='jf':
       lexLbl, _ = self.stack.pop()                   # зняти з вершини стека мітку
@@ -177,8 +180,15 @@ class PSM():             # Postfix Stack Machine
   def doIt(self,lex,tok):
     # зняти з вершини стека ідентифікатор (правий операнд)
     # self.stack.print()
+    if not self.stack:
+        raise PSMExcept(11)  # Стек порожній
+
     (lexR,tokR) = self.stack.pop()
+
     # зняти з вершини стека запис (лівий операнд)
+    if not self.stack:
+        raise PSMExcept(11)  # Стек порожній
+
     (lexL,tokL) = self.stack.pop()
    
     if (lex,tok) == ('=', 'assign_op'):
@@ -207,7 +217,7 @@ class PSM():             # Postfix Stack Machine
   def getValTypeOperand(self,lex,tok):
     if tok == "r-val":
       if self.tableOfId[lex][2] == 'val_undef':
-        raise PMExcept(8)  #'неініційована змінна', (lexL,tableOfId[lexL], (lexL,tokL
+        raise PSMExcept(8)  #'неініційована змінна', (lexL,tableOfId[lexL], (lexL,tokL
       else:
         type,val = (self.tableOfId[lex][1],self.tableOfId[lex][2])
     elif tok == 'int':
@@ -226,7 +236,7 @@ class PSM():             # Postfix Stack Machine
     (lexL,typeL,valL) = lexTypeValL
     (lexR,typeR,valR) = lexTypeValR
     if typeL != typeR:
-      raise PMExcept(9)  # типи операндів відрізняються
+      raise PSMExcept(9)  # типи операндів відрізняються
     elif arthBoolOp == '+':
       value = valL + valR
     elif arthBoolOp == '-':
@@ -234,7 +244,7 @@ class PSM():             # Postfix Stack Machine
     elif arthBoolOp == '*':
       value = valL * valR
     elif arthBoolOp == '/' and valR ==0:
-      raise PMExcept(10)  # ділення на нуль
+      raise PSMExcept(10)  # ділення на нуль
     elif arthBoolOp == '/' and typeL=='double':
       value = valL / valR
     elif arthBoolOp == '/' and typeL=='int':
@@ -285,7 +295,7 @@ pm1.postfixExec()
 # print(f"pm1.postfixCode:\n  {pm1.postfixCode}\n")
 
 # for i in range(0,len(pm1.postfixCode)):
-  # s= "{0:4}  {1:4}   {2}".format(i, pm1.mapDebug[i], pm1.postfixCode[i])
-  # print(s) 
+#   s= "{0:4}  {1:4}   {2}".format(i, pm1.mapDebug[i], pm1.postfixCode[i])
+#   print(s) 
   
 # print(f"pm1.mapDebug:\n  {pm1.mapDebug}\n")

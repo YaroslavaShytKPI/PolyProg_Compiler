@@ -1,9 +1,9 @@
 
 def process_data(table_of_vars, table_of_label, table_of_const, postfix_code):
     # Знайти максимальну довжину ключа в кожній категорії
-    max_var_length = max(len(var) for var in table_of_vars.keys())
-    max_label_length = max(len(label) for label in table_of_label.keys())
-    max_const_length = max(len(value) for value in table_of_const.keys())
+    max_var_length = max(len(var) for var in table_of_vars.keys()) if table_of_label else 0
+    max_label_length = max(len(label) for label in table_of_label.keys()) if table_of_label else 0
+    max_const_length = max(len(value) for value in table_of_const.keys()) if table_of_label else 0
 
     # Обробка таблиці змінних
     vars_data = "\n".join([f"   {var.ljust(max_var_length)}     {info[1]}" for var, info in table_of_vars.items()])
@@ -15,7 +15,8 @@ def process_data(table_of_vars, table_of_label, table_of_const, postfix_code):
     constants_data = "\n".join([f"   {value.ljust(max_const_length)}     {info[0][:-3]}" for value, info in table_of_const.items()])
 
     # Знайти максимальну довжину для кожного стовпця у розділі .code()
-    max_code_lengths = [max(len(str(item[i])) for item in postfix_code) for i in range(2)]
+    # max_code_lengths = [max(len(str(item[i])) for item in postfix_code) for i in range(2)] if table_of_label else 0
+    max_code_lengths = [max(len(str(item[i])) for item in postfix_code) for i in range(2)] if postfix_code else [0, 0]
 
     # Обробка коду
     code_data = "\n".join([f"   {item[0].ljust(max_code_lengths[0])}     {item[1]}" for item in postfix_code])
