@@ -13,7 +13,11 @@ class PSM():             # Postfix Stack Machine
     self.file = ""
     self.slt = ""
     self.headSection = {"VarDecl":".vars(", "LblDecl":".labels(", "ConstDecl":".constants(", "Code":".code("}
-    self.errMsg = {1:"неочікуваний заголовок", 2:"тут очікувався хоч один порожній рядок", 3:"тут очікувався заголовок секції", 4:"очікувалось два елемента в рядку", 8:"неініційована змінна" }
+    self.errMsg = {1:"неочікуваний заголовок", 
+                   2:"тут очікувався хоч один порожній рядок", 
+                   3:"тут очікувався заголовок секції", 
+                   4:"очікувалось два елемента в рядку", 
+                   8:"неініційована змінна" }
     self.stack = Stack()
     self.numInstr = 0
     self.maxNumbInstr = 0
@@ -143,9 +147,12 @@ class PSM():             # Postfix Stack Machine
         elif tok in ('jump','jf','colon'):
           self.doJumps(lex,tok)
         elif tok == 'print':
-          id, _ = self.stack.pop()
+          id, tok_type = self.stack.pop()
           self.numInstr = self.numInstr +1
-          print(f'-------------- OUT: {id}={self.tableOfId[id][2]}')
+          if tok_type == 'id':
+            print(f'-------------- OUT: {id}={self.tableOfId[id][2]}')
+          else:
+            print(f'-------------- OUT: {id}={self.tableOfConst[id][2]}')
         elif tok == 'readline':
           id, _ = self.stack.pop()
           self.numInstr = self.numInstr +1

@@ -2,6 +2,10 @@ main {
 	int x;
 	bool ind;
 	double num;
+  int i;
+  double res;
+    x = 10;
+    num = 50.2;
     readline(x);
     readline(num);
     // data 1 2 3 *
@@ -32,7 +36,7 @@ main {
       } 
 
       if(x <= 3){ 
-        res = 10^5; 
+        res = 10.1^5; 
       }
       x = x + 6;
       x = x - 6;
