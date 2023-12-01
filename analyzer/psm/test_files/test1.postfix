@@ -9,17 +9,15 @@
 )
 
 .labels(
-   m1    12
-   m2    26
-   m3    19
-   m4    33
+   m1    9
+   m2    24
 )
 
 .constants(
    2     int
    0     int
    1     int
-   5     int
+   3     int
 )
 
 .code(
@@ -32,28 +30,20 @@
    c       l-val
    1       int
    =       assign_op
-   a       l-val
-   0       int
-   =       assign_op
-   a       r-val
-   5       int
+   m1      label
+   c       r-val
+   3       int
    <       rel_op
-   m4      label
-   JF      jf
    m2      label
-   JMP     jump
-   a       l-val
-   a       r-val
+   JF      jf
+   :       colon
+   c       l-val
+   c       r-val
    1       int
    +       add_op
    =       assign_op
    m1      label
    JMP     jump
-   b       l-val
-   b       r-val
-   a       r-val
-   +       add_op
-   =       assign_op
-   m3      label
-   JMP     jump
+   m2      label
+   :       colon
 )

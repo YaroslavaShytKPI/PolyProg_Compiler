@@ -160,7 +160,7 @@ class PSM():             # Postfix Stack Machine
   def doJumps(self,lex,tok):
     ni = self.numInstr
     if tok =='jump':
-      lexLbl, _ = self.stack.pop()                 # зняти з вершини стека мітку
+      lexLbl, _ = self.stack.pop()                      # зняти з вершини стека мітку
       self.numInstr = int(self.tableOfLabel[lexLbl])    # номер наступної інструкції = значення мітки
     elif tok =='colon':
       _, _  = self.stack.pop()                       # зняти з вершини стека 

@@ -288,37 +288,39 @@ class Parser:
             self.num_row += 1
 
             # Створення мітки для перевірки умови в циклі
-            check_label = self.createLabel()
-            postfix_code.append(check_label)
-
+            m1 = self.createLabel()
+            self.setValLabel(m1)
+            postfix_code.append(m1)
+            
             self.parse_token("(", "breacket_op")
             self.parse_bool_expr()
             self.parse_token(")", "breacket_op")
 
             # Створення мітки для початку циклу
-            start_label = self.createLabel()
+            m2 = self.createLabel()
+           
+            postfix_code.append(m2)
             postfix_code.append(('JF', 'jf'))
-            postfix_code.append(start_label)
-
+            postfix_code.append((':', 'colon'))
             self.parse_token("{", "breacket_op")
             self.parse_statement_list()
 
-            # Створення мітки для перевірки умови в кінці циклу
+            
+            postfix_code.append(m1)
             postfix_code.append(('JMP', 'jump'))
-            postfix_code.append(check_label)
-            self.setValLabel(check_label)
+            postfix_code.append(m2)
+            self.setValLabel(m2)
             postfix_code.append((':', 'colon'))
 
             self.parse_token("}", "breacket_op")
 
-            # Додавання мітки для перевірки умови в кінці циклу
-            postfix_code.append(start_label)
-            self.setValLabel(start_label)
-            postfix_code.append((':', 'colon'))
 
             return True
         else: 
             return False
+
+
+
 
     # IfStatement = if '(' BoolExp ')' '{' StatementList '}'
     def parse_if(self):
