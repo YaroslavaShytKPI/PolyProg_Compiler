@@ -3,57 +3,57 @@
 
 .vars(
    y     int
-   x     int
+   a     int
+   b     int
+   c     int
 )
 
 .labels(
-   m1    33
-   m2    8
-   m3    15
-   m4    30
+   m1    12
+   m2    26
+   m3    19
+   m4    33
 )
 
 .constants(
    2     int
    0     int
-   6     int
    1     int
-   3     int
+   5     int
 )
 
 .code(
    y       l-val
    2       int
    =       assign_op
-   m1      label
-   x       l-val
+   b       l-val
    0       int
    =       assign_op
-   m2      label
-   JF      jf
-   x       r-val
-   y       r-val
-   6       int
-   +       add_op
+   c       l-val
+   1       int
+   =       assign_op
+   a       l-val
+   0       int
+   =       assign_op
+   a       r-val
+   5       int
    <       rel_op
-   m3      label
+   m4      label
+   JF      jf
+   m2      label
    JMP     jump
-   x       l-val
-   x       r-val
+   a       l-val
+   a       r-val
    1       int
    +       add_op
    =       assign_op
-   x       l-val
-   3       int
-   x       r-val
+   m1      label
+   JMP     jump
+   b       l-val
+   b       r-val
+   a       r-val
    +       add_op
    =       assign_op
-   x       id
-   OUT     print
+   m3      label
    JMP     jump
-   m4      label
-   :       colon
-   JMP     jump
-   m1      label
-   :       colon
 )

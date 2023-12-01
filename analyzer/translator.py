@@ -201,49 +201,40 @@ class Parser:
         if lex == "for" and tok == "keyword":
             self.num_row += 1
 
-            # Створення мітки для початку циклу
-            start_label = self.createLabel()
-            postfix_code.append(start_label)
-
+            start = self.createLabel()
+            action = self.createLabel()
+            increment = self.createLabel()
+            leave = self.createLabel()
+            
             self.parse_token("(", "breacket_op")
             self.parse_assign()
-
-            # Створення мітки для перевірки умови в циклі
-            check_label = self.createLabel()
-            postfix_code.append(check_label)
-            self.setValLabel(check_label)
-            postfix_code.append(('JF', 'jf'))
-
             self.parse_token(";", "punct")
+            
+            self.setValLabel(start)
+
             self.parse_bool_expr()
             self.parse_token(";", "punct")
 
-            # Створення мітки для збільшення/зменшення лічильника циклу
-            increment_label = self.createLabel()
-            postfix_code.append(increment_label)
-            self.setValLabel(increment_label)
+            postfix_code.append(leave)
+            postfix_code.append(('JF', 'jf'))
+            postfix_code.append(action)
             postfix_code.append(('JMP', 'jump'))
+
+            self.setValLabel(increment)
 
             self.parse_assign()
             self.parse_token(")", "breacket_op")
-
+            postfix_code.append(start)
+            postfix_code.append(('JMP', 'jump'))
+            self.setValLabel(action)
             self.parse_token("{", "breacket_op")
             self.parse_statement_list()
-
-            # Створення мітки для перевірки умови в кінці циклу
+            postfix_code.append(increment)
             postfix_code.append(('JMP', 'jump'))
-            end_label = self.createLabel()
-            postfix_code.append(end_label)
-            self.setValLabel(end_label)
-            postfix_code.append((':', 'colon'))
+            self.setValLabel(leave)
 
             self.parse_token("}", "breacket_op")
 
-            # Додавання мітки для перевірки умови в кінці циклу
-            postfix_code.append(('JMP', 'jump'))
-            postfix_code.append(start_label)
-            self.setValLabel(start_label)
-            postfix_code.append((':', 'colon'))
 
             return True
         else:
@@ -344,13 +335,15 @@ class Parser:
 
             # створюємо мітку
             m1 = self.createLabel()
-            postfix_code.append(m1) # трансляція
+            postfix_code.append(m1)           # трансляція
             postfix_code.append(('JF', 'jf')) # додали m1 JF
 
             self.parse_statement_list()       # трансляція
-
+            
             self.parse_token("}", "breacket_op")
 
+            m2 = self.createLabel()
+            lexElse = False
             _, lex, tok = self.get_sym()
 
             if lex == "else" and tok == "keyword":
@@ -358,20 +351,29 @@ class Parser:
                 self.parse_token("{", "breacket_op")
 
                 # створюємо мітку m2
-                m2 = self.createLabel()
+               # m2 = self.createLabel()
                 postfix_code.append(m2)   # трансляція
                 postfix_code.append(('JMP', 'jump'))
-                postfix_code.append(m1)
                 self.setValLabel(m1)   # в таблиці міток
+                postfix_code.append(m1)
+                
                 postfix_code.append((':', 'colon')) # додали m2 JMP m1 :
 
                 self.parse_statement_list()    # трансляція
-
-                postfix_code.append(m2) # трансляція
+                lexElse = True
+                self.parse_token("}", "breacket_op")
+            else:
+                self.setValLabel(m1)   # в таблиці міток
+                postfix_code.append(m1)
+                
+                postfix_code.append((':', 'colon')) # додали m2 JMP m1 :
+                #self.parse_token("}", "breacket_op")
+            if lexElse:
                 self.setValLabel(m2)  # в табл.міток
+                postfix_code.append(m2) # трансляція
                 postfix_code.append((':', 'colon')) # додали m2 JMP m1 : 
 
-                self.parse_token("}", "breacket_op")
+                
 
             return True
         else: 
