@@ -247,36 +247,31 @@ class Parser:
 
         if lex == "do" and tok == "keyword":
             self.num_row += 1
-
-            # Створення мітки для початку циклу
-            start_label = self.createLabel()
-            postfix_code.append(start_label)
-
+            m1 = self.createLabel()
+            self.setValLabel(m1)
+           # postfix_code.append(m1)
+           # postfix_code.append((':', 'colon'))
+            m2 = self.createLabel()
             self.parse_token("{", "breacket_op")
             self.parse_statement_list()
             self.parse_token("}", "breacket_op")
-
             self.parse_token("while", "keyword")
-
-            # Створення мітки для перевірки умови в кінці циклу
-            check_label = self.createLabel()
-            postfix_code.append(check_label)
-            self.setValLabel(check_label)
-
+            #postfix_code.append(m2)
+            #postfix_code.append((':', 'colon'))
             self.parse_token("(", "breacket_op")
             self.parse_bool_expr()
             self.parse_token(")", "breacket_op")
-
-            # Створення команди JMP для переходу на початок циклу у випадку виконання умови
+            postfix_code.append(m2)
             postfix_code.append(('JF', 'jf'))
-            postfix_code.append(start_label)
-
-            # Встановлення значень міток у відповідних місцях коду
-            self.setValLabel(start_label)
-            postfix_code.append((':', 'colon'))
-
+            #postfix_code.append(m1)
+            #postfix_code.append((':', 'colon'))
+            postfix_code.append(m1)
+            postfix_code.append(('JMP', 'jump'))
+            
+        #    postfix_code.append((':', 'colon'))
+            self.setValLabel(m2)
             return True
-        else: 
+        else:
             return False
 
     # WhileStatement = while '(' BoolExp ')' '{' StatementList '}' 
