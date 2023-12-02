@@ -59,7 +59,7 @@
    res      l-val
    num      r-val
    x        r-val
-   /        pu
+   /        mult_op
    =        assign_op
    i        l-val
    1        int
@@ -104,7 +104,7 @@
    :        colon
    num      id
    num      r-val
-   *        breacket
+   *        mult_op
    OUT      print
    m8       label
    :        colon
@@ -116,7 +116,7 @@
    res      l-val
    num      r-val
    x        r-val
-   /        pu
+   /        mult_op
    =        assign_op
    res      r-val
    15       int

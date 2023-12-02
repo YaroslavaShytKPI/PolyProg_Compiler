@@ -26,6 +26,7 @@ class Parser:
              if FSuccess == (True, 'Translator'):
                  print_res(table_of_label=table_of_label, table_of_vars=table_of_vars, postfix_code=postfix_code)
                  save_data_to_file(table_of_vars, table_of_label, table_of_const,  postfix_code, file_name.split(".")[0])
+
          return FSuccess
 
 
@@ -177,6 +178,7 @@ class Parser:
                 _, r_type = self.parse_term()
 
                 postfix_code.append((lex, tok))
+
                 if to_view:
                     self.configToPrint(lex, temp_row)
 
@@ -571,13 +573,13 @@ class Parser:
                     self.num_row -= 1
 
             if tok in "mult_op":
-               
                 if metPow:
                     for row in tempPowOpHolder:
                         postfix_code.append((row[0], row[1]))
                         if to_view:
                             self.configToPrint(row[0], row[2])
                     tempPowOpHolder = []
+                
                 tempRow = self.num_row
                 inCaseOfPow = lex; 
                 self.num_row += 1
@@ -592,7 +594,8 @@ class Parser:
                     ### додати умову якусь тіпа get_sym != ^
                 num_line, next_lex, tok = self.get_sym()
                 if next_lex != "^":
-                    postfix_code.append((lex, tok[:-3]))
+                    # postfix_code.append((lex, tok[:-3]))
+                    postfix_code.append((lex, 'mult_op'))
                     if to_view:
                         self.configToPrint(lex, tempRow)
 

@@ -14,7 +14,7 @@ class PSM():             # Postfix Stack Machine
     self.file = ""
     self.slt      = ""
     self.headSection = {"VarDecl":".vars(", "LblDecl":".labels(", "ConstDecl":".constants(", "Code":".code("}
-    self.errMsg = {1:"неочікуваний заголовок", 2:"тут очікувався хоч один порожній рядок", 3:"тут очікувався заголовок секції", 4:"очікувалось два елемента в рядку", 8:"неініційована змінна" }
+    self.errMsg = {1:"неочікуваний заголовок", 2:"тут очікувався хоч один порожній рядок", 3:"тут очікувався заголовок секції", 4:"очікувалось два елемента в рядку", 8:"неініційована змінна", 15: "Недопустиме значення для присвоєння змінній"}
     self.stack = Stack()
     self.numInstr = 0
     self.maxNumbInstr = 0
@@ -147,13 +147,20 @@ class PSM():             # Postfix Stack Machine
               self.stack.push((value, tok))
               self.numInstr = self.numInstr + 1          
               if self.tableOfId[lex][1] == "int":
-                self.tableOfId[lex] = (self.tableOfId[lex][0], self.tableOfId[lex][1], int(value))
+                try:
+                  self.tableOfId[lex] = (self.tableOfId[lex][0], self.tableOfId[lex][1], int(value))
+                except:
+                  raise PSMExcept(8) # неможливе значення для присвоєння змінній
               elif self.tableOfId[lex][1] == "double":
-                self.tableOfId[lex] = (self.tableOfId[lex][0], self.tableOfId[lex][1], float(value))
+                try:
+                  self.tableOfId[lex] = (self.tableOfId[lex][0], self.tableOfId[lex][1], float(value))
+                except:
+                  raise PSMExcept(15) # неможливе значення для присвоєння змінній
               elif self.tableOfId[lex][1] == "bool":
-                self.tableOfId[lex] = (self.tableOfId[lex][0], self.tableOfId[lex][1], bool(value))
-              else:
-                raise PSMExcept(15)  # неможливе значення для присвоєння змінній
+                try:
+                  self.tableOfId[lex] = (self.tableOfId[lex][0], self.tableOfId[lex][1], bool(value))
+                except:
+                  raise PSMExcept(15) # неможливе значення для присвоєння змінній
               # self.tableOfId[lex] = (self.tableOfId[lex][0], self.tableOfId[lex][1], value)
               print(f'-------------- IN: {lex}={value}')
               self.stack.pop()
@@ -167,7 +174,7 @@ class PSM():             # Postfix Stack Machine
               elif (tok == 'int' or tok == 'double' or tok == 'bool'):
                   print(f'-------------- OUT: {id}')
               else:
-                  raise PSMExcept(11)  # Помилка: непідтримуваний тип виразу для виведення
+                  raise PSMExcept(7)  # Помилка: непідтримуваний тип виразу для виведення
               
         elif tok in ('jump','jf','colon'):
           self.doJumps(lex,tok)
@@ -243,7 +250,7 @@ class PSM():             # Postfix Stack Machine
 
     if tok == "r-val" or tok == "id":
       if self.tableOfId[lex][2] == 'val_undef':
-        raise PSMExcept(8)  #'неініційована змінна', (lexL,tableOfId[lexL], (lexL,tokL
+        raise PSMExcept(5)  #'неініційована змінна', (lexL,tableOfId[lexL], (lexL,tokL
       else:
         type_val,val = (self.tableOfId[lex][1],self.tableOfId[lex][2])
     elif tok == 'int':
@@ -270,7 +277,7 @@ class PSM():             # Postfix Stack Machine
     elif arthBoolOp == '*':
       value = valL * valR
     elif arthBoolOp == '/' and valR ==0:
-      raise PSMExcept(10)  # ділення на нуль
+      raise PSMExcept(6)  # ділення на нуль
     elif arthBoolOp == '/' and typeL=='double':
       value = valL / valR
     elif arthBoolOp == '/' and typeL=='int':

@@ -59,7 +59,7 @@ main {
 	    print(num * num);
     }
 
-    do {
+   do {
 	    res = num + 15;
 	    res = num / x;
 
@@ -72,7 +72,7 @@ main {
       } 
 
       if(x <= 3){ 
-        res = 10.1^5; 
+       res = 10.1^5; 
       }
       x = x + 6;
       x = x - 6;
