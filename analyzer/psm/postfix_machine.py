@@ -68,7 +68,7 @@ class PSM():             # Postfix Stack Machine
     self.numLine += 1
     # один порожній рядок обов'язковий 
     if s != "": 
-      raise PMExcept(2)
+      raise PSMExcept(2)
     # інші (можливі) порожні рядки та заголовок секції
     F = True
     while F:
@@ -127,8 +127,6 @@ class PSM():             # Postfix Stack Machine
         self.postfixCode.append((item1,item2))
         instrNum = len(self.postfixCode)-1
         self.mapDebug[instrNum] = self.numLine
-      
-  
 
   def postfixExec(self):
     "Виконує postfixCode"
@@ -147,23 +145,42 @@ class PSM():             # Postfix Stack Machine
           if nexttok == 'readline':
               value = input()
               self.stack.push((value, tok))
-              self.numInstr = self.numInstr +1          
-              self.tableOfId[lex] = (self.tableOfId[lex][0], self.tableOfId[lex][1], value)
+              self.numInstr = self.numInstr + 1          
+              if self.tableOfId[lex][1] == "int":
+                self.tableOfId[lex] = (self.tableOfId[lex][0], self.tableOfId[lex][1], int(value))
+              elif self.tableOfId[lex][1] == "double":
+                self.tableOfId[lex] = (self.tableOfId[lex][0], self.tableOfId[lex][1], float(value))
+              elif self.tableOfId[lex][1] == "bool":
+                self.tableOfId[lex] = (self.tableOfId[lex][0], self.tableOfId[lex][1], bool(value))
+              else:
+                raise PSMExcept(15)  # неможливе значення для присвоєння змінній
+              # self.tableOfId[lex] = (self.tableOfId[lex][0], self.tableOfId[lex][1], value)
               print(f'-------------- IN: {lex}={value}')
               self.stack.pop()
               self.stack.pop()
+          
+          if nexttok == 'print':
+              id, _ = self.stack.pop()
+              self.numInstr = self.numInstr +1
+              if tok == 'id':
+                  print(f'-------------- OUT: {id}={self.tableOfId[id][2]}')
+              elif (tok == 'int' or tok == 'double' or tok == 'bool'):
+                  print(f'-------------- OUT: {id}')
+              else:
+                  raise PSMExcept(11)  # Помилка: непідтримуваний тип виразу для виведення
+              
         elif tok in ('jump','jf','colon'):
           self.doJumps(lex,tok)
-        elif tok == 'print':
-          id, _ = self.stack.pop()
-          self.numInstr = self.numInstr +1
-          print(f'-------------- OUT: {id}={self.tableOfId[id][2]}')
         # код який я додаю
      #   elif tok == 'readline':
      #     self.stack.push((lex, tok))
         else: 
-          print(f'-=-=-=========({lex},{tok})  numInstr={self.numInstr}')
-          self.doIt(lex,tok)
+          if tok == 'print':
+            id, _ = self.stack.pop()
+            print(f'-------------- OUT: {id}')
+          else:
+            print(f'-=-=-=========({lex},{tok})  numInstr={self.numInstr}')
+            self.doIt(lex,tok)
           self.numInstr = self.numInstr +1
       self.stack.print()
     except PSMExcept as e:
@@ -197,17 +214,19 @@ class PSM():             # Postfix Stack Machine
    
     if (lex,tok) == ('=', 'assign_op'):
       tokL = self.tableOfId[lexL][1]
-      if tokL != tokR: 
-        print(f'(lexR,tokR)={(lexR,tokR)}\n(lexL,tokL)={(lexL,tokL)}')
-        raise PSMExcept(7)    # типи змінної відрізняється від типу значення
-      else:
-        # виконати операцію:
-        # оновлюємо запис у таблиці ідентифікаторів
-        # ідентифікатор/змінна  =  
-        #              (index - не змінився, 
-        #               тип - як у правого операнда (вони однакові),  
-        #               значення - як у правого операнда)
-        self.tableOfId[lexL] = (self.tableOfId[lexL][0],tokR,getValue(lexR,tokR))
+      tokR, lexR = self.getValTypeOperand(lexR, tokR)
+      # if tokL != tokR: 
+      #   print(f'(lexR,tokR)={(lexR,tokR)}\n(lexL,tokL)={(lexL,tokL)}')
+      #   raise PSMExcept(7)    # типи змінної відрізняється від типу значення
+      # else:
+      #   # виконати операцію:
+      #   # оновлюємо запис у таблиці ідентифікаторів
+      #   # ідентифікатор/змінна  =  
+      #   #              (index - не змінився, 
+      #   #               тип - як у правого операнда (вони однакові),  
+      #   #               значення - як у правого операнда)
+      #   self.tableOfId[lexL] = (self.tableOfId[lexL][0],tokR,getValue(lexR,tokR))
+      self.tableOfId[lexL] = (self.tableOfId[lexL][0],tokR,getValue(lexR,tokR))
     else:
       self.processingArthBoolOp((lexL,tokL),lex,(lexR,tokR))
 
@@ -219,36 +238,39 @@ class PSM():             # Postfix Stack Machine
     self.applyOperator((lexL,typeL,valL),arthBoolOp,(lexR,typeR,valR))
     
   def getValTypeOperand(self,lex,tok):
-    if tok == "r-val":
+    type_val = None
+    val = None
+
+    if tok == "r-val" or tok == "id":
       if self.tableOfId[lex][2] == 'val_undef':
-        raise PMExcept(8)  #'неініційована змінна', (lexL,tableOfId[lexL], (lexL,tokL
+        raise PSMExcept(8)  #'неініційована змінна', (lexL,tableOfId[lexL], (lexL,tokL
       else:
-        type,val = (self.tableOfId[lex][1],self.tableOfId[lex][2])
+        type_val,val = (self.tableOfId[lex][1],self.tableOfId[lex][2])
     elif tok == 'int':
       val = int(lex)
-      type = tok
+      type_val = tok
     elif tok == 'double':
       val = float(lex)
-      type = tok
+      type_val = tok
     elif tok == 'bool':
       val = lex
-      type = tok
-    return (type,val)
+      type_val = tok
+    return (type_val,val)
   
     
   def applyOperator(self,lexTypeValL,arthBoolOp,lexTypeValR):
     (lexL,typeL,valL) = lexTypeValL
     (lexR,typeR,valR) = lexTypeValR
-    if typeL != typeR:
-      raise PMExcept(9)  # типи операндів відрізняються
-    elif arthBoolOp == '+':
+    # if typeL != typeR:
+    #   raise PSMExcept(9)  # типи операндів відрізняються
+    if arthBoolOp == '+':
       value = valL + valR
     elif arthBoolOp == '-':
       value = valL - valR
     elif arthBoolOp == '*':
       value = valL * valR
     elif arthBoolOp == '/' and valR ==0:
-      raise PMExcept(10)  # ділення на нуль
+      raise PSMExcept(10)  # ділення на нуль
     elif arthBoolOp == '/' and typeL=='double':
       value = valL / valR
     elif arthBoolOp == '/' and typeL=='int':
@@ -263,6 +285,8 @@ class PSM():             # Postfix Stack Machine
       value = str(valL >= valR).lower()
     elif arthBoolOp == '==':
       value = str(valL == valR).lower()
+    elif arthBoolOp == '!=':
+      value = str(valL != valR).lower()
     elif arthBoolOp == '^':
       value = float(valL ** valR)
     else:

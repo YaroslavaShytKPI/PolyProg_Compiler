@@ -448,6 +448,8 @@ class Parser:
 
     def parse_id_list(self):
         num_line, lex, tok = self.get_sym()
+
+        table_of_vars[lex] = (table_of_vars[lex][0], table_of_vars[lex][1], 'assign')
         
         postfix_code.append((lex, tok))
 
@@ -472,6 +474,8 @@ class Parser:
                 #print(" " * self.column + 'в рядку {0} - {1}'.format(num_line, (lex, tok)))
                 self.parse_token(",", "punct")
                 num_line, lex, tok = self.get_sym()
+
+                table_of_vars[lex] = (table_of_vars[lex][0], table_of_vars[lex][1], 'assign')
 
                 postfix_code.append((lex, tok))
 

@@ -1,18 +1,18 @@
-main{
-  int y;
-  int x;
-  x = 1;
-  y = 1;
+//main{
+//  int y;
+//  int x;
+//  x = 1;
+//  y = 1;
 
   //print(y);
 
 
-  readline(x, y);
-  if(x > y){
-    print(x);
-  }else{
-    print(y);
-  }
+//  readline(x, y);
+//  if(x > y){
+//    print(x);
+//  }else{
+//    print(y);
+//  }
   //y = 2;
   //int a, b, c;
   //b = 0;
@@ -30,5 +30,52 @@ main{
   //do{
    // c = c + 1;
   //}while(c < 5)
+//}
 
+main {
+	int x;
+	bool ind;
+	double num;
+  int i;
+  double res;
+    x = 3;
+    i = x;
+    print(i);
+    num = 3.3;
+    readline(x);
+    res = num / x;
+    // data 1 2 3 *
+    for (i = 1; i > 0; i = i - 1) {
+	    if(i == 2) {
+	      print(true);
+      }
+
+	    print(i);
+    }
+        
+    if(num > 1.1) {
+	    print(num);
+    } else {
+	    print(num * num);
+    }
+
+    do {
+	    res = num + 15;
+	    res = num / x;
+
+	    if (res != 15){
+		    print(res);
+      }
+
+      if(res < 3){
+        print(true);
+      } 
+
+      if(x <= 3){ 
+        res = 10.1^5; 
+      }
+      x = x + 6;
+      x = x - 6;
+      num = num - 1;
+    } while(num >= 0) //a
 }
