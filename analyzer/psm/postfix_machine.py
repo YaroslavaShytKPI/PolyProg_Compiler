@@ -138,15 +138,29 @@ class PSM():             # Postfix Stack Machine
       while self.numInstr < self.maxNumbInstr:
         self.stack.print()
         lex,tok = self.postfixCode[self.numInstr]
-        if tok in ('int','double','l-val','r-val','label','bool'):
+        # added
+        vars_were_assigned = False
+        if tok in ('int','double','l-val','r-val','label','bool', 'id'):
           self.stack.push((lex,tok))
           self.numInstr = self.numInstr +1
+          nextlex,nexttok = self.postfixCode[self.numInstr]
+          if nexttok == 'readline':
+              value = input()
+              self.stack.push((value, tok))
+              self.numInstr = self.numInstr +1          
+              self.tableOfId[lex] = (self.tableOfId[lex][0], self.tableOfId[lex][1], value)
+              print(f'-------------- IN: {lex}={value}')
+              self.stack.pop()
+              self.stack.pop()
         elif tok in ('jump','jf','colon'):
           self.doJumps(lex,tok)
         elif tok == 'print':
           id, _ = self.stack.pop()
           self.numInstr = self.numInstr +1
           print(f'-------------- OUT: {id}={self.tableOfId[id][2]}')
+        # код який я додаю
+     #   elif tok == 'readline':
+     #     self.stack.push((lex, tok))
         else: 
           print(f'-=-=-=========({lex},{tok})  numInstr={self.numInstr}')
           self.doIt(lex,tok)

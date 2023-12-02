@@ -448,6 +448,7 @@ class Parser:
 
     def parse_id_list(self):
         num_line, lex, tok = self.get_sym()
+        
         postfix_code.append((lex, tok))
 
         if to_view:

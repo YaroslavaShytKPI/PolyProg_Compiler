@@ -3,43 +3,42 @@
 
 .vars(
    y     int
-   a     int
-   b     int
-   c     int
+   x     int
 )
 
 .labels(
-   m1    9
-   m2    21
+   m1    19
+   m2    23
 )
 
 .constants(
-   2     int
-   0     int
    1     int
-   5     int
 )
 
 .code(
+   x       l-val
+   1       int
+   =       assign_op
    y       l-val
-   2       int
-   =       assign_op
-   b       l-val
-   0       int
-   =       assign_op
-   c       l-val
    1       int
    =       assign_op
-   c       l-val
-   c       r-val
-   1       int
-   +       add_op
-   =       assign_op
-   c       r-val
-   5       int
-   <       rel_op
-   m2      label
-   JF      jf
+   x       id
+   IN      readline
+   y       id
+   IN      readline
+   x       r-val
+   y       r-val
+   >       rel_op
    m1      label
+   JF      jf
+   x       id
+   OUT     print
+   m2      label
    JMP     jump
+   m1      label
+   :       colon
+   y       id
+   OUT     print
+   m2      label
+   :       colon
 )
