@@ -10,22 +10,24 @@
 )
 
 .labels(
-   m1     21
-   m2     35
-   m3     28
-   m4     48
-   m5     42
+   m1     16
+   m2     30
+   m3     23
+   m4     43
+   m5     37
    m6     val_undef
-   m7     57
+   m7     46
    m8     63
-   m9     65
-   m10    127
-   m11    82
-   m12    val_undef
-   m13    91
+   m9     73
+   m10    79
+   m11    81
+   m12    138
+   m13    93
    m14    val_undef
-   m15    103
+   m15    102
    m16    val_undef
+   m17    114
+   m18    val_undef
 )
 
 .constants(
@@ -56,11 +58,6 @@
    =        assign_op
    x        id
    IN       readline
-   res      l-val
-   num      r-val
-   x        r-val
-   /        mult_op
-   =        assign_op
    i        l-val
    1        int
    =        assign_op
@@ -91,62 +88,78 @@
    OUT      print
    m3       label
    JMP      jump
+   x        l-val
+   0        int
+   =        assign_op
+   m7       label
+   x        r-val
+   0        int
+   <=       rel_op
+   m8       label
+   JF       jf
+   :        colon
+   x        l-val
+   x        r-val
+   1        int
+   +        add_op
+   =        assign_op
+   x        id
+   OUT      print
+   m7       label
+   JMP      jump
+   m8       label
+   :        colon
    num      r-val
    1.1      double
    >        rel_op
-   m7       label
+   m9       label
    JF       jf
    num      id
    OUT      print
-   m8       label
+   m10      label
    JMP      jump
-   m7       label
+   m9       label
    :        colon
    num      id
    num      r-val
    *        mult_op
    OUT      print
-   m8       label
+   m10      label
    :        colon
    res      l-val
    num      r-val
    15       int
    +        add_op
    =        assign_op
-   res      l-val
-   num      r-val
-   x        r-val
-   /        mult_op
-   =        assign_op
    res      r-val
    15       int
    !=       rel_op
-   m11      label
+   m13      label
    JF       jf
    res      id
    OUT      print
-   m11      label
+   m13      label
    :        colon
    res      r-val
    3        int
    <        rel_op
-   m13      label
+   m15      label
    JF       jf
    true     bool
    OUT      print
-   m13      label
+   m15      label
    :        colon
    x        r-val
    3        int
    <=       rel_op
-   m15      label
+   m17      label
    JF       jf
    res      l-val
    10.1     double
    5        int
    ^        power_op
    =        assign_op
-   m15      label
+   m17      label
    :        colon
    x        l-val
    x        r-val
@@ -166,8 +179,8 @@
    num      r-val
    0        int
    >=       rel_op
-   m10      label
+   m12      label
    JF       jf
-   m9       label
+   m11      label
    JMP      jump
 )

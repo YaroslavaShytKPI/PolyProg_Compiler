@@ -6,13 +6,13 @@
 }
 
 // Our assembly.
-.assembly analyzer/psm/test_files/test1
+.assembly test1
 {
   .hash algorithm 0x00008004
   .ver 0:0:0:0
 }
 
-.module analyzer/psm/test_files/test1.exe
+.module test1.exe
 
 // Definition of Program class.
 .class private auto ansi beforefieldinit Program
@@ -23,10 +23,10 @@
     {
     .locals (
        [1]  int32 x,
-       [2]  bool32 ind,
-       [3]  double32 num,
+       [2]  bool ind,
+       [3]  float32 num,
        [4]  int32 i,
-       [5]  double32 res
+       [5]  float32 res
      )
 
    .entrypoint
@@ -44,11 +44,6 @@ num l-val
 = assign_op
 x id
 IN readline
-res l-val
-num r-val
-x r-val
-/ mult_op
-= assign_op
 i l-val
 1 int
 = assign_op
@@ -79,62 +74,78 @@ i id
 OUT print
 m3 label
 JMP jump
+x l-val
+0 int
+= assign_op
+m7 label
+x r-val
+0 int
+<= rel_op
+m8 label
+JF jf
+: colon
+x l-val
+x r-val
+1 int
++ add_op
+= assign_op
+x id
+OUT print
+m7 label
+JMP jump
+m8 label
+: colon
 num r-val
 1.1 double
 > rel_op
-m7 label
+m9 label
 JF jf
 num id
 OUT print
-m8 label
+m10 label
 JMP jump
-m7 label
+m9 label
 : colon
 num id
 num r-val
 * mult_op
 OUT print
-m8 label
+m10 label
 : colon
 res l-val
 num r-val
 15 int
 + add_op
 = assign_op
-res l-val
-num r-val
-x r-val
-/ mult_op
-= assign_op
 res r-val
 15 int
 != rel_op
-m11 label
+m13 label
 JF jf
 res id
 OUT print
-m11 label
+m13 label
 : colon
 res r-val
 3 int
 < rel_op
-m13 label
+m15 label
 JF jf
 true bool
 OUT print
-m13 label
+m15 label
 : colon
 x r-val
 3 int
 <= rel_op
-m15 label
+m17 label
 JF jf
 res l-val
 10.1 double
 5 int
 ^ power_op
 = assign_op
-m15 label
+m17 label
 : colon
 x l-val
 x r-val
@@ -154,9 +165,9 @@ num r-val
 num r-val
 0 int
 >= rel_op
-m10 label
+m12 label
 JF jf
-m9 label
+m11 label
 JMP jump
 	ldstr "x = "
 	call void [mscorlib]System.Console::Write(string) 

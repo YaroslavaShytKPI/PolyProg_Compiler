@@ -4,7 +4,7 @@ from print_func import *
 from save_in_postfix_file import save_data_to_file
 
 postfix_code = []
-to_view = True
+to_view = False
 table_of_label = {}
 table_of_vars = {}
 
