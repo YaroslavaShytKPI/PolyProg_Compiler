@@ -4,28 +4,35 @@ main {
 	double num;
   int i;
   double res;
-    x = 10;
-    num = 50.2;
+    x = 3;
+    i = x;
+    print(i);
+    num = 3.3;
     readline(x);
-    readline(num);
+    // res = num / x;
     // data 1 2 3 *
-    for (i = x; i > 0; i = i - 1) {
+    for (i = 1; i > 0; i = i - 1) {
 	    if(i == 2) {
 	      print(true);
       }
 
 	    print(i);
     }
-        
-    if(num > 100.0) {
+    x = 0;
+    while(x <= 0){
+      x = x + 1;
+      print(x);
+    }
+
+    if(num > 1.1) {
 	    print(num);
     } else {
 	    print(num * num);
     }
 
-    do {
+   do {
 	    res = num + 15;
-	    res = num / x;
+	   // res = num / x;
 
 	    if (res != 15){
 		    print(res);
@@ -36,18 +43,10 @@ main {
       } 
 
       if(x <= 3){ 
-        res = 10.1^5; 
+       res = 10.1^5; 
       }
       x = x + 6;
       x = x - 6;
-    } while(x >= 0) //a
-   // x = 0;
-   // while(x < 8){
-   //   if(x / 2 == 2.0){
-   //     print(x);
-   //   }else{
-   //     print(x + 1);
-   //   }
-   //   x = x + 1;
-   // }
+      num = num - 1;
+    } while(num >= 0) //a
 }
