@@ -122,4 +122,4 @@ def saveCIL(fileName):
   f.close()
   print(f"IL-програма для CLR збережена у файлі {fname}")
 
-saveCIL("analyzer/psm/test_files/test1")
+saveCIL("test1")
