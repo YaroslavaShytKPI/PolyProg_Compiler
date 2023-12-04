@@ -35,9 +35,8 @@ def saveCIL(fileName):
   comma = ","
   for x in table_of_vars:
     index,tp,_ = table_of_vars[x][0], table_of_vars[x][1], table_of_vars[x][2]
-    if tp == 'int': tpil = 'int32' 
-    elif tp == 'double': tpil = 'float32'
-    else: tpil = 'bool'
+    if tp == 'double': tpil = 'float32' 
+    else: tpil = 'int32'
     if index == cntVars: comma = "\n     )"
     localVars += "       [{0}]  {1} {2}".format(index-1,tpil, x) + comma + "\n"
   # print((x,a))
@@ -46,6 +45,7 @@ def saveCIL(fileName):
    //.maxstack  8\n"""
   code = ""
   current_token = None
+  prev = ''
 
   for token, token_type in postfix_code:
     if current_token:
@@ -63,15 +63,17 @@ def saveCIL(fileName):
         continue
     
     if token_type == 'l-val':
+        prev = table_of_vars[token][1]
         code += f"   ldloca    {token}\n"
     elif token_type == 'r-val' or token_type == 'id':
+        prev = table_of_vars[token][1]
         code += f"   ldloc    {token}\n"
     elif token_type == 'int':
         code += f"   ldc.i4    {token}\n"
     elif token_type == 'double':
         code += f"   ldc.r4    {token}\n"
     elif token_type == 'assign_op':
-        code += f"   stind.{('i4' if token == 'int' else 'r4')}\n"
+        code += f"   stind.{('i4' if prev == 'int' else 'r4')}\n"
     elif token_type == 'print':
         code += f"   call    void [mscorlib]System.Console::WriteLine()\n"
     elif token_type == 'readline':
@@ -100,23 +102,29 @@ def saveCIL(fileName):
             code += "   div\n"
     elif token_type == 'power_op':
         # code += "    conv.r8\n      conv.r8\n      pow\n      conv.r4\n"
-        code += "   pow\n"
+        code += "   call   float64 [mscorlib]System.Math::Pow(float64, float64)\n"
     elif token_type == 'bool':
         code += f"   ldstr \"{token}\"\n"
     elif token_type == 'negate_op':
         code += "   neg\n"
     else:
-        code += f"{token}!!!"
+        pass
     
   # виведення значень змінних
   values = ""
+  typ = ""
   for x in table_of_vars:
     values += "\t" + 'ldstr "' + x + ' = "\n'
     values += "\t" + "call void [mscorlib]System.Console::Write(string) \n"
     _,tp,_ = table_of_vars[x][0], table_of_vars[x][1], table_of_vars[x][2]
-    tp += '32'
+    if tp == 'int':
+        typ = 'int32'
+    elif tp == 'double':
+        typ = 'float32'
+    elif tp == 'bool':
+        typ = 'bool'
     values += "\t" + "ldloc  " + x + "\n"
-    values += "\t" + "call void [mscorlib]System.Console::WriteLine(" +tp + ") \n" 
+    values += "\t" + "call void [mscorlib]System.Console::WriteLine(" +typ + ") \n" 
     
   f.write(header + localVars + entrypoint +code + values +"\tret    \n}\n}")
   f.close()

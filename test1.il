@@ -29,7 +29,7 @@
    //.maxstack  8
    ldloca    x
    ldc.i4    3
-   stind.r4
+   stind.i4
 	ldstr "x = "
 	call void [mscorlib]System.Console::Write(string) 
 	ldloc  x

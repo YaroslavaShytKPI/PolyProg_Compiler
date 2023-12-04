@@ -324,7 +324,7 @@ pm1.loadPostfixFile("analyzer/psm/test_files/test1")  #  завантаженн�
 
 pm1.postfixExec()
 
-# print(f"pm1.tableOfId:\n  {pm1.tableOfId}\n")
+print(f"pm1.tableOfId:\n  {pm1.tableOfId}\n")
 # print(f"pm1.tableOfLabel:\n  {pm1.tableOfLabel}\n")
 # print(f"pm1.tableOfConst:\n  {pm1.tableOfConst}\n")
 # print(f"pm1.postfixCode:\n  {pm1.postfixCode}\n")

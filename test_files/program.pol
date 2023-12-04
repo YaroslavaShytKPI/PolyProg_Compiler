@@ -1,6 +1,7 @@
 main {
+  
 	int x;
-	bool ind;
+  bool ind;
 	double num;
   int i;
   double res;
@@ -9,8 +10,8 @@ main {
     print(i);
     num = 3.3;
     readline(x);
-    // res = num / x;
-    // data 1 2 3 *
+     res = num / x;
+     //data 1 2 3 *
     for (i = 1; i > 0; i = i - 1) {
 	    if(i == 2) {
 	      print(true);
@@ -32,7 +33,7 @@ main {
 
    do {
 	    res = num + 15;
-	   // res = num / x;
+	    res = num / x;
 
 	    if (res != 15){
 		    print(res);
@@ -43,7 +44,7 @@ main {
       } 
 
       if(x <= 3){ 
-       res = 10.1^5; 
+        res = 10.1^5;
       }
       x = x + 6;
       x = x - 6;
