@@ -136,8 +136,7 @@ class PSM():             # Postfix Stack Machine
       while self.numInstr < self.maxNumbInstr:
         self.stack.print()
         lex,tok = self.postfixCode[self.numInstr]
-        # added
-        vars_were_assigned = False
+
         if tok in ('int','double','l-val','r-val','label','bool', 'id'):
           self.stack.push((lex,tok))
           self.numInstr = self.numInstr +1
@@ -193,7 +192,6 @@ class PSM():             # Postfix Stack Machine
     except PSMExcept as e:
       # Повідомити про факт виявлення помилки
       print('RunTime: Аварійне завершення програми з кодом {0}'.format(e))
-      
 
   def doJumps(self,lex,tok):
     ni = self.numInstr
@@ -221,7 +219,7 @@ class PSM():             # Postfix Stack Machine
    
     if (lex,tok) == ('=', 'assign_op'):
       tokL = self.tableOfId[lexL][1]
-      tokR, lexR = self.getValTypeOperand(lexR, tokR)
+      tokR, lexR, _ = self.getValTypeOperand(lexR, tokR)
       # if tokL != tokR: 
       #   print(f'(lexR,tokR)={(lexR,tokR)}\n(lexL,tokL)={(lexL,tokL)}')
       #   raise PSMExcept(7)    # типи змінної відрізняється від типу значення
@@ -240,9 +238,9 @@ class PSM():             # Postfix Stack Machine
   def processingArthBoolOp(self,lexTokL,arthBoolOp,lexTokR): 
     (lexL,tokL) = lexTokL
     (lexR,tokR) = lexTokR
-    typeL,valL = self.getValTypeOperand(lexL,tokL)
-    typeR,valR = self.getValTypeOperand(lexR,tokR)
-    self.applyOperator((lexL,typeL,valL),arthBoolOp,(lexR,typeR,valR))
+    typeL,valL, tokL = self.getValTypeOperand(lexL,tokL)
+    typeR,valR, tokR = self.getValTypeOperand(lexR,tokR)
+    self.applyOperator((lexL,typeL,valL, tokL),arthBoolOp,(lexR,typeR,valR, tokR))
     
   def getValTypeOperand(self,lex,tok):
     type_val = None
@@ -253,6 +251,8 @@ class PSM():             # Postfix Stack Machine
         raise PSMExcept(5)  #'неініційована змінна', (lexL,tableOfId[lexL], (lexL,tokL
       else:
         type_val,val = (self.tableOfId[lex][1],self.tableOfId[lex][2])
+    elif tok == "l-val":
+       type_val,val = (self.tableOfId[lex][1],self.tableOfId[lex][2])
     elif tok == 'int':
       val = int(lex)
       type_val = tok
@@ -262,14 +262,15 @@ class PSM():             # Postfix Stack Machine
     elif tok == 'bool':
       val = lex
       type_val = tok
-    return (type_val,val)
+    return (type_val,val, tok)
   
     
   def applyOperator(self,lexTypeValL,arthBoolOp,lexTypeValR):
-    (lexL,typeL,valL) = lexTypeValL
-    (lexR,typeR,valR) = lexTypeValR
+    (lexL,typeL,valL, tokL) = lexTypeValL
+    (lexR,typeR,valR, tokR) = lexTypeValR
     # if typeL != typeR:
     #   raise PSMExcept(9)  # типи операндів відрізняються
+    
     if arthBoolOp == '+':
       value = valL + valR
     elif arthBoolOp == '-':
@@ -278,10 +279,12 @@ class PSM():             # Postfix Stack Machine
       value = valL * valR
     elif arthBoolOp == '/' and valR ==0:
       raise PSMExcept(6)  # ділення на нуль
-    elif arthBoolOp == '/' and typeL=='double':
+    elif arthBoolOp == '/':
+    #and typeL=='double':
       value = valL / valR
-    elif arthBoolOp == '/' and typeL=='int':
-      value = int(valL / valR)
+      typeL = 'double'
+  #  elif arthBoolOp == '/' and typeL=='int':
+  #    value = int(valL / valR)
     elif arthBoolOp == '<':
       value = str(valL < valR).lower()
     elif arthBoolOp == '<=':
@@ -296,6 +299,11 @@ class PSM():             # Postfix Stack Machine
       value = str(valL != valR).lower()
     elif arthBoolOp == '^':
       value = float(valL ** valR)
+    elif arthBoolOp == 'NEG':
+     
+      value = -valR
+      
+      self.stack.push((lexL, tokL))
     else:
         pass
     # покласти результат на стек
@@ -304,18 +312,19 @@ class PSM():             # Postfix Stack Machine
     else: 
       self.stack.push((str(value),typeL))
 
+def getValue(lex,tok):
+    if tok=='double':
+      return float(lex)
+    elif tok=='int':
+      return int(lex)
+    elif tok=='bool':
+      return lex
     
 class PSMExcept(Exception): 
   def __init__(self,msg):
     self.msg = msg
 
-def getValue(lex,tok):
-  if tok=='double':
-    return float(lex)
-  elif tok=='int':
-    return int(lex)
-  elif tok=='bool':
-    return lex
+  
 
 
     
@@ -324,7 +333,7 @@ pm1.loadPostfixFile("analyzer/psm/test_files/test1")  #  завантаженн�
 
 pm1.postfixExec()
 
-print(f"pm1.tableOfId:\n  {pm1.tableOfId}\n")
+# print(f"pm1.tableOfId:\n  {pm1.tableOfId}\n")
 # print(f"pm1.tableOfLabel:\n  {pm1.tableOfLabel}\n")
 # print(f"pm1.tableOfConst:\n  {pm1.tableOfConst}\n")
 # print(f"pm1.postfixCode:\n  {pm1.postfixCode}\n")

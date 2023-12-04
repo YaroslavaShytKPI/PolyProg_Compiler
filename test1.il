@@ -28,7 +28,7 @@
    .entrypoint
    //.maxstack  8
    ldloca    x
-   ldc.i4    3
+   ldc.i4    2
    stind.i4
 	ldstr "x = "
 	call void [mscorlib]System.Console::Write(string) 

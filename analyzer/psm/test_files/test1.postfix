@@ -2,7 +2,7 @@
 .version: 0.1
 
 .vars(
-   x     int
+   x     double
 )
 
 .labels(
@@ -10,11 +10,22 @@
 )
 
 .constants(
-   3     int
+   2.0     double
+   3.0     double
+   4.0     double
+   5     int
 )
 
 .code(
-   x     l-val
-   3     int
-   =     assign_op
+   x       l-val
+   2.0     double
+   NEG     add_op
+   3.0     double
+   4.0     double
+   NEG     add_op
+   5       int
+   -       add_op
+   *       mult_op
+   -       add_op
+   =       assign_op
 )
