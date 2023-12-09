@@ -1,4 +1,6 @@
 main {
-	double x;
-  x = -2.0 - 3.0 * (-4.0 - 5);
+  double i;
+  for (i = 2.3; i <= 5; i = i + 1) {
+    print(i);
+  }
 }

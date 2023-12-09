@@ -168,7 +168,7 @@ class PSM():             # Postfix Stack Machine
           if nexttok == 'print':
               id, _ = self.stack.pop()
               self.numInstr = self.numInstr +1
-              if tok == 'id':
+              if tok == 'r-val':
                   print(f'-------------- OUT: {id}={self.tableOfId[id][2]}')
               elif (tok == 'int' or tok == 'double' or tok == 'bool'):
                   print(f'-------------- OUT: {id}')

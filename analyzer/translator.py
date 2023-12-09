@@ -151,9 +151,9 @@ class Parser:
             self.fail_parse("Невідповідність типів", (num_line, l_type, r_type))
         table_of_vars[lex] = (table_of_vars[lex][0], table_of_vars[lex][1], 'assign')
         
-    def parse_expression(self, is_print = False):
+    def parse_expression(self):
         self.column += 1
-        _, l_type = self.parse_term(is_print)
+        _, l_type = self.parse_term()
         if l_type == "intnum":
             l_type = "int"
         elif l_type == "doublenum":
@@ -214,6 +214,12 @@ class Parser:
             
             self.setValLabel(start)
 
+            postfix_code.append(action)
+            postfix_code.append(('JMP', 'jump'))
+
+            postfix_code.append(start)
+            postfix_code.append((':', 'colon'))
+
             self.parse_bool_expr()
             self.parse_token(";", "punct")
 
@@ -223,6 +229,8 @@ class Parser:
             postfix_code.append(('JMP', 'jump'))
 
             self.setValLabel(increment)
+            postfix_code.append(increment)
+            postfix_code.append((':', 'colon'))
 
             self.parse_assign()
             self.parse_token(")", "breacket_op")
@@ -230,10 +238,16 @@ class Parser:
             postfix_code.append(('JMP', 'jump'))
             self.setValLabel(action)
             self.parse_token("{", "breacket_op")
+
+            postfix_code.append(action)
+            postfix_code.append((':', 'colon'))
+
             self.parse_statement_list()
             postfix_code.append(increment)
             postfix_code.append(('JMP', 'jump'))
             self.setValLabel(leave)
+            postfix_code.append(leave)
+            postfix_code.append((':', 'colon'))
 
             self.parse_token("}", "breacket_op")
 
@@ -288,6 +302,7 @@ class Parser:
             m1 = self.createLabel()
             self.setValLabel(m1)
             postfix_code.append(m1)
+            postfix_code.append((':', 'colon'))
             
             self.parse_token("(", "breacket_op")
             self.parse_bool_expr()
@@ -298,7 +313,6 @@ class Parser:
            
             postfix_code.append(m2)
             postfix_code.append(('JF', 'jf'))
-            postfix_code.append((':', 'colon'))
             self.parse_token("{", "breacket_op")
             self.parse_statement_list()
 
@@ -370,6 +384,7 @@ class Parser:
             if lexElse:
                 self.setValLabel(m2)  # в табл.міток
                 postfix_code.append(m2) # трансляція
+
                 postfix_code.append((':', 'colon')) # додали m2 JMP m1 : 
 
                 
@@ -437,7 +452,7 @@ class Parser:
         if lex == "print" and tok == "keyword":
             self.num_row += 1
             self.parse_token("(", "breacket_op")
-            self.parse_expression(True)
+            self.parse_expression()
             postfix_code.append(('OUT', 'print'))
 
             if to_view:
@@ -547,9 +562,9 @@ class Parser:
             result_type = 'type_error'
         return result_type
 
-    def parse_term(self, is_print = False):
+    def parse_term(self):
         self.column += 1
-        _, parsed_factor_token_left = self.parse_factor(is_print)
+        _, parsed_factor_token_left = self.parse_factor()
         exp_type = parsed_factor_token_left
         if parsed_factor_token_left == "intnum":
             parsed_factor_token_left = "int"
@@ -639,7 +654,7 @@ class Parser:
         else:
             self.fail_parse("Невiдповiднiсть у Power", (num_line, lex, tok, "^ Factor"))
 
-    def parse_factor(self, is_print = False):
+    def parse_factor(self):
         self.column += 1
         #print(" " * self.column + "parse_factor():")
         num_line, lex, tok = self.get_sym()
@@ -664,16 +679,10 @@ class Parser:
                 self.fail_parse("Використання невизначеної змінної", (num_line, lex))
 
             # додаємо ідентифікатор тут, оскільки тут ми знаємо, що це не є розділ оголошення
-            if (is_print):
-                self.postfix_code_gen('id', (lex, 'id'))
+            self.postfix_code_gen('r-val', (lex, 'r-val'))
 
-                if to_view:
-                    self.configToPrint(lex, self.num_row)
-            else:
-                self.postfix_code_gen('r-val', (lex, 'r-val'))
-
-                if to_view:
-                    self.configToPrint(lex, self.num_row)
+            if to_view:
+                self.configToPrint(lex, self.num_row)
 
             self.num_row += 1
             #print(" " * self.column + "в рядку {0} - {1}".format(num_line, (lex, tok)))
