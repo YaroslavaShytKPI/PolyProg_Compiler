@@ -2,52 +2,40 @@
 .version: 0.1
 
 .vars(
-   i     double
+   x     int
 )
 
 .labels(
    m1    3
-   m2    23
-   m3    14
-   m4    29
+   m2    20
 )
 
 .constants(
-   2.3     double
-   5       int
-   1       int
+   0     int
+   1     int
+   5     int
 )
 
 .code(
-   i       l-val
-   2.3     double
+   x       l-val
+   0       int
    =       assign_op
-   m2      label
-   JMP     jump
    m1      label
    :       colon
-   i       r-val
-   5       int
-   <=      rel_op
-   m4      label
-   JF      jf
-   m2      label
-   JMP     jump
-   m3      label
-   :       colon
-   i       l-val
-   i       r-val
+   x       l-val
+   x       r-val
    1       int
    +       add_op
    =       assign_op
+   x       r-val
+   OUT     print
+   x       r-val
+   5       int
+   >       rel_op
+   m2      label
+   JF      jf
    m1      label
    JMP     jump
    m2      label
-   :       colon
-   i       r-val
-   OUT     print
-   m3      label
-   JMP     jump
-   m4      label
    :       colon
 )

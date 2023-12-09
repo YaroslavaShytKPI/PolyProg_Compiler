@@ -1,6 +1,9 @@
 main {
-  double i;
-  for (i = 2.3; i <= 5; i = i + 1) {
-    print(i);
-  }
+  int x;
+  x = 0;
+
+     do {
+      x = x + 1;
+	    print(x);
+    } while(x > 5)
 }

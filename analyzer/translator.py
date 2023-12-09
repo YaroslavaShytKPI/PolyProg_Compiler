@@ -265,15 +265,18 @@ class Parser:
             self.num_row += 1
             m1 = self.createLabel()
             self.setValLabel(m1)
-           # postfix_code.append(m1)
-           # postfix_code.append((':', 'colon'))
+
+            postfix_code.append(m1)
+            postfix_code.append((':', 'colon'))
+
             m2 = self.createLabel()
             self.parse_token("{", "breacket_op")
             self.parse_statement_list()
             self.parse_token("}", "breacket_op")
             self.parse_token("while", "keyword")
-            #postfix_code.append(m2)
-            #postfix_code.append((':', 'colon'))
+            # postfix_code.append(m2)
+            # postfix_code.append((':', 'colon'))
+
             self.parse_token("(", "breacket_op")
             self.parse_bool_expr()
             self.parse_token(")", "breacket_op")
@@ -285,7 +288,10 @@ class Parser:
             postfix_code.append(('JMP', 'jump'))
             
         #    postfix_code.append((':', 'colon'))
+            # self.setValLabel(m2)
+            postfix_code.append(m2)
             self.setValLabel(m2)
+            postfix_code.append((':', 'colon'))
             return True
         else:
             return False
