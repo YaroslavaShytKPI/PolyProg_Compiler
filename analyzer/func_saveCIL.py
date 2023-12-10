@@ -37,8 +37,9 @@ def saveCIL(fileName):
     index,tp,_ = table_of_vars[x][0], table_of_vars[x][1], table_of_vars[x][2]
     if tp == 'double': tpil = 'float32' 
     else: tpil = 'int32'
-    if index == cntVars: comma = "\n     )"
+    if index == cntVars: comma = ""
     localVars += "       [{0}]  {1} {2}".format(index-1,tpil, x) + comma + "\n"
+  localVars += "     )"
   # print((x,a))
   entrypoint = """
    .entrypoint
@@ -74,15 +75,16 @@ def saveCIL(fileName):
     
     elif token_type == 'r-val':
         # prev = table_of_vars[token][1]
-        code += f"   ldloc    {token}\n"
         type = table_of_vars[token][1]
-        # if type == 'float' and prev == 'int':
+        # if type == 'int':
         #     code += '   conv.r4\n'
-
-        # code += f'   ldloc {token}\n'
+        
+        code += f"   ldloc    {token}\n"
 
         # if type == 'int' and prev == 'float':
         #     code += '   conv.r4\n'
+        
+        # code += f'   ldloc {token}\n'
 
         prev = type
     
@@ -149,17 +151,26 @@ def saveCIL(fileName):
         elif token == '-':
             code += "   sub\n"
         elif token == '*':
+            if prev == 'int':
+                code += "   conv.r4\n"
             code += "   mul\n"
+            prev = 'double'
         elif token == '/':
+            if prev == 'int':
+                code += "   conv.r4\n"
             code += "   div\n"
+            prev = 'double'
+        elif token == 'NEG':
+            code += "   neg\n"
     elif token_type == 'power_op':
-        # code += "    conv.r8\n      conv.r8\n      pow\n      conv.r4\n"
+        if prev == 'int':
+            code += '   conv.r8\n'
         code += "   call   float64 [mscorlib]System.Math::Pow(float64, float64)\n"
+        if prev == 'int':
+            code += '   conv.i4\n'
     elif token_type == 'bool':
         code += f"   ldstr \"{token}\"\n"
         prev = "bool"
-    elif token_type == 'negate_op':
-        code += "   neg\n"
     else:
         pass
     

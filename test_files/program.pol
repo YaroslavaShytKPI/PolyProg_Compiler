@@ -40,7 +40,7 @@ main {
       }
 
       if(res < 3){
-        print(true);
+        print(res);
       } 
 
       if(x <= 3){ 

@@ -1,9 +1,52 @@
 main {
-  int x;
-  x = 0;
+	int x;
+  bool ind;
+	double num;
+  int i;
+  double res;
+    x = 2^2^3;
+    i = x;
+    print(i);
+    num = 4.0;
+    readline(x);
+     res = num / x;
+     print(res);
+     //data 1 2 3 *
+    for (i = 1; i > 0; i = i - 1) {
+	    if(i == 2) {
+	      print(true);
+      }
 
-     do {
+	    print(i);
+    }
+    x = 0;
+    while(x <= 0){
       x = x + 1;
-	    print(x);
-    } while(x > 5)
+      print(x);
+    }
+
+    if(num > 1.1) {
+	    print(num);
+    } else {
+	    print(num * num);
+    }
+
+   do {
+	    res = num + 15;
+
+	    if (res != 15){
+		    print(res);
+      }
+
+      if(res < 3){
+        print(res);
+      } 
+
+      if(x <= 3){ 
+        res = 10.1^5;
+      }
+      x = x + 6;
+      x = x - 6;
+      num = num - 1;
+    } while(num >= 0) //a
 }
